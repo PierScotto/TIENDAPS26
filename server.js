@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const mysql = require('mysql2/promise');
+const { Pool: PgPool } = require('pg');
 
 dotenv.config();
 
@@ -10,17 +11,29 @@ const app = express();
 const PORT = Number(process.env.PORT || 3000);
 const ADMIN_USERNAME = String(process.env.ADMIN_USERNAME || '').trim();
 const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || '').trim();
+const DATABASE_URL = String(process.env.DATABASE_URL || '').trim();
+const USE_POSTGRES = Boolean(DATABASE_URL);
 
-const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST || '127.0.0.1',
-  port: Number(process.env.MYSQL_PORT || 3306),
-  user: process.env.MYSQL_USER || 'root',
-  password: process.env.MYSQL_PASSWORD || '',
-  database: process.env.MYSQL_DATABASE || 'novatech_store',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
+let mysqlPool = null;
+let pgPool = null;
+
+if (USE_POSTGRES) {
+  pgPool = new PgPool({
+    connectionString: DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+  });
+} else {
+  mysqlPool = mysql.createPool({
+    host: process.env.MYSQL_HOST || '127.0.0.1',
+    port: Number(process.env.MYSQL_PORT || 3306),
+    user: process.env.MYSQL_USER || 'root',
+    password: process.env.MYSQL_PASSWORD || '',
+    database: process.env.MYSQL_DATABASE || 'novatech_store',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+  });
+}
 
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
@@ -66,7 +79,36 @@ function requireAdminAuth(req, res, next) {
 }
 
 async function ensureSchema() {
-  await pool.query(`
+  if (USE_POSTGRES) {
+    await pgPool.query(`
+      CREATE TABLE IF NOT EXISTS app_state (
+        id SMALLINT PRIMARY KEY,
+        products_json TEXT NOT NULL,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pgPool.query(
+      'INSERT INTO app_state (id, products_json) VALUES (1, $1) ON CONFLICT (id) DO NOTHING',
+      ['[]'],
+    );
+
+    await pgPool.query(`
+      CREATE TABLE IF NOT EXISTS leads (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(120) NOT NULL,
+        last_name VARCHAR(120) NULL,
+        company VARCHAR(180) NULL,
+        phone VARCHAR(60) NOT NULL,
+        email VARCHAR(190) NOT NULL,
+        message TEXT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    return;
+  }
+
+  await mysqlPool.query(`
     CREATE TABLE IF NOT EXISTS app_state (
       id TINYINT UNSIGNED NOT NULL PRIMARY KEY,
       products_json LONGTEXT NOT NULL,
@@ -74,12 +116,12 @@ async function ensureSchema() {
     )
   `);
 
-  await pool.query(
+  await mysqlPool.query(
     'INSERT INTO app_state (id, products_json) VALUES (1, ?) ON DUPLICATE KEY UPDATE products_json = products_json',
     ['[]'],
   );
 
-  await pool.query(`
+  await mysqlPool.query(`
     CREATE TABLE IF NOT EXISTS leads (
       id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       name VARCHAR(120) NOT NULL,
@@ -95,8 +137,13 @@ async function ensureSchema() {
 
 app.get('/api/health', async (_req, res) => {
   try {
-    await pool.query('SELECT 1');
-    res.json({ ok: true, db: 'connected' });
+    if (USE_POSTGRES) {
+      await pgPool.query('SELECT 1');
+      return res.json({ ok: true, db: 'connected', engine: 'postgres' });
+    }
+
+    await mysqlPool.query('SELECT 1');
+    return res.json({ ok: true, db: 'connected', engine: 'mysql' });
   } catch (error) {
     res.status(500).json({ ok: false, db: 'disconnected', error: error.message });
   }
@@ -104,7 +151,9 @@ app.get('/api/health', async (_req, res) => {
 
 app.get('/api/products', async (_req, res) => {
   try {
-    const [rows] = await pool.query('SELECT products_json FROM app_state WHERE id = 1 LIMIT 1');
+    const rows = USE_POSTGRES
+      ? (await pgPool.query('SELECT products_json FROM app_state WHERE id = 1 LIMIT 1')).rows
+      : (await mysqlPool.query('SELECT products_json FROM app_state WHERE id = 1 LIMIT 1'))[0];
     const row = rows[0];
     const products = row ? JSON.parse(row.products_json || '[]') : [];
     res.json({ products });
@@ -133,10 +182,17 @@ app.put('/api/products', async (req, res) => {
     }
 
     const productsJson = JSON.stringify(products);
-    await pool.query(
-      'INSERT INTO app_state (id, products_json) VALUES (1, ?) ON DUPLICATE KEY UPDATE products_json = VALUES(products_json)',
-      [productsJson],
-    );
+    if (USE_POSTGRES) {
+      await pgPool.query(
+        'INSERT INTO app_state (id, products_json, updated_at) VALUES (1, $1, CURRENT_TIMESTAMP) ON CONFLICT (id) DO UPDATE SET products_json = EXCLUDED.products_json, updated_at = CURRENT_TIMESTAMP',
+        [productsJson],
+      );
+    } else {
+      await mysqlPool.query(
+        'INSERT INTO app_state (id, products_json) VALUES (1, ?) ON DUPLICATE KEY UPDATE products_json = VALUES(products_json)',
+        [productsJson],
+      );
+    }
 
     res.json({ ok: true, count: products.length });
   } catch (error) {
@@ -158,10 +214,17 @@ app.post('/api/leads', async (req, res) => {
       return res.status(400).json({ error: 'name, phone y email son obligatorios.' });
     }
 
-    await pool.query(
-      'INSERT INTO leads (name, last_name, company, phone, email, message) VALUES (?, ?, ?, ?, ?, ?)',
-      [name, lastName || null, company || null, phone, email, message || null],
-    );
+    if (USE_POSTGRES) {
+      await pgPool.query(
+        'INSERT INTO leads (name, last_name, company, phone, email, message) VALUES ($1, $2, $3, $4, $5, $6)',
+        [name, lastName || null, company || null, phone, email, message || null],
+      );
+    } else {
+      await mysqlPool.query(
+        'INSERT INTO leads (name, last_name, company, phone, email, message) VALUES (?, ?, ?, ?, ?, ?)',
+        [name, lastName || null, company || null, phone, email, message || null],
+      );
+    }
 
     res.status(201).json({ ok: true });
   } catch (error) {
@@ -187,11 +250,16 @@ app.get('*', (req, res, next) => {
 });
 
 async function bootstrap() {
-  await pool.query('SELECT 1');
+  if (USE_POSTGRES) {
+    await pgPool.query('SELECT 1');
+  } else {
+    await mysqlPool.query('SELECT 1');
+  }
   await ensureSchema();
 
   app.listen(PORT, () => {
     console.log(`Servidor listo en http://localhost:${PORT}`);
+    console.log(`Motor DB activo: ${USE_POSTGRES ? 'PostgreSQL' : 'MySQL'}`);
     if (isAdminAuthEnabled()) {
       console.log('Admin protegido con Basic Auth.');
     } else {

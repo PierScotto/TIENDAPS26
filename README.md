@@ -23,22 +23,25 @@ La estructura toma como referencia la lógica comercial de la tienda indicada po
 - JavaScript vanilla
 - Tipografías modernas desde Google Fonts
 
-## Backend real con MySQL
+## Backend real con base de datos
 
-Esta version ya puede funcionar con persistencia real en MySQL.
+Esta version funciona con persistencia real en DB.
+
+- Local: MySQL (variables `MYSQL_*`).
+- Render: PostgreSQL administrado automaticamente (variable `DATABASE_URL`).
 
 Archivos clave:
 
 - `server.js`: API REST con Express.
-- `db/schema.sql`: esquema para crear base y tablas.
-- `.env.example`: variables de entorno para conexion MySQL.
+- `db/schema.sql`: esquema para entorno local MySQL.
+- `.env.example`: variables para entorno local y seguridad admin.
 - `app.js`: mantiene fallback local y sincroniza con `/api/products` y `/api/leads`.
 
-### 1) Crear base de datos en DBeaver
+### 1) Local: crear base de datos en DBeaver (opcional)
 
-Ejecuta el script completo de `db/schema.sql`.
+Ejecuta el script completo de `db/schema.sql` si vas a correr local con MySQL.
 
-### 2) Configurar entorno
+### 2) Configurar entorno local
 
 Crear archivo `.env` en la raiz, basado en `.env.example`:
 
@@ -69,6 +72,8 @@ API disponible:
 - `GET /api/products`
 - `PUT /api/products`
 - `POST /api/leads`
+
+En Render el servicio usa PostgreSQL automaticamente (definido en `render.yaml`), sin necesidad de cargar `MYSQL_HOST` manualmente.
 
 ### Seguridad admin en produccion
 
