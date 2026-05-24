@@ -240,7 +240,19 @@ app.get('/admin', requireAdminAuth, (_req, res) => {
   res.redirect('/admin.html');
 });
 
-app.use(express.static(__dirname));
+app.use('/LOGOS', express.static(path.join(__dirname, 'LOGOS'), {
+  maxAge: '30d',
+  immutable: true,
+}));
+
+app.use(express.static(__dirname, {
+  maxAge: '2h',
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  },
+}));
 
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/')) {
