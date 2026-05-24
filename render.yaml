@@ -6,7 +6,7 @@ databases:
 
 services:
   - type: web
-    name: novatech-store
+    name: pacto-store-live
     runtime: node
     plan: free
     buildCommand: npm install
