@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="NovaTech Store: tienda moderna de tecnología con PCs, notebooks, TVs, smartphones y periféricos." />
+    <title>NovaTech Store | Tecnología que destaca</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-grid"></div>
+    <div class="bg-orb bg-orb-a"></div>
+    <div class="bg-orb bg-orb-b"></div>
+
+    <header class="topbar">
+      <div class="container topbar__inner">
+        <p>Envíos rápidos, cuotas y soporte experto. Garantía oficial en toda la tienda.</p>
+        <div class="topbar__actions">
+          <a href="#ofertas">Ofertas</a>
+          <a href="#categorias">Categorías</a>
+          <a href="#contacto">Contacto</a>
+          <a class="topbar__admin-link" href="admin.html">⚙ Admin</a>
+        </div>
+      </div>
+    </header>
+
+    <nav class="navbar">
+      <div class="container navbar__inner">
+        <a class="brand" href="#inicio">
+          <span class="brand__mark">N</span>
+          <span class="brand__text">
+            <strong>NovaTech</strong>
+            <small>Electrónica premium</small>
+          </span>
+        </a>
+
+        <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">Menu</button>
+
+        <div class="nav-links" id="navLinks">
+          <a href="#categorias">Categorías</a>
+          <a href="#ofertas">Inicio de Página</a>
+          <a href="#destacados">Filtrar Equipos</a>
+          <a href="#marcas">Marcas</a>
+          <a href="#contacto">Contacto</a>
+        </div>
+
+        <button class="cart-button" id="openCart">
+          <span>Carrito</span>
+          <strong id="cartCount">0</strong>
+        </button>
+      </div>
+    </nav>
+
+    <main id="inicio">
+      <section class="hero container">
+        <div class="hero__content reveal">
+          <span class="eyebrow">Tecnología de alto impacto</span>
+          <h1>La tienda moderna para PCs, notebooks, TVs y smartphones.</h1>
+          <p>
+        
+          </p>
+
+          <div class="hero__cta">
+            <a class="btn btn--primary" href="#destacados">Ver productos</a>
+            <a class="btn btn--ghost" href="#ofertas">Explorar ofertas</a>
+          </div>
+
+          <div class="hero__stats">
+            <article>
+              <strong>+500</strong>
+              <span>Productos disponibles</span>
+                </span>Equipos seleccionados y listos para entrega.</span>
+            </article>
+            <article>
+              <strong>Asesoramiento especializado</strong>
+              <span>Te ayudamos a elegir el equipo ideal según tus necesidades.</span>
+            </article>
+            <article>
+              <strong>Entregas Rápidas</strong>
+              <span>Comprá fácil y recibí rápido. <span>
+                <span>Una experiencia ágil, segura y confiable de principio a fin.</span>
+            </article>
+          </div>
+        </div>
+
+        <div class="hero__visual reveal">
+          <section class="hero-card hero-card--side" id="contacto">
+            <div class="upload-card__header">
+              <span class="eyebrow">Contacto empresarial</span>
+              <h3>Contanos qué necesita tu empresa</h3>
+              <p>Te respondemos por WhatsApp o correo con una propuesta a medida.</p>
+            </div>
+            <form class="contact-form-card" id="businessContactForm">
+              <div class="contact-form-grid">
+                <label>
+                  <span>Nombre</span>
+                  <input name="name" type="text" placeholder="Tu nombre" required />
+                </label>
+                <label>
+                  <span>Apellido</span>
+                  <input name="lastName" type="text" placeholder="Tu apellido" />
+                </label>
+                <label>
+                  <span>Empresa</span>
+                  <input name="company" type="text" placeholder="Nombre de empresa" />
+                </label>
+                <label>
+                  <span>Número telefónico</span>
+                  <input name="phone" type="tel" placeholder="+595..." required />
+                </label>
+                <label>
+                  <span>Correo electrónico</span>
+                  <input name="email" type="email" placeholder="tuempresa@correo.com" required />
+                </label>
+                <label class="contact-form-grid__full">
+                  <span>Mensaje</span>
+                  <textarea name="message" rows="4" placeholder="Contanos qué equipos o solución tecnológica necesitás."></textarea>
+                </label>
+              </div>
+              <div class="contact-form-actions">
+                <button type="submit" class="btn btn--primary">Enviar consulta por WhatsApp</button>
+                <a class="btn btn--ghost" href="mailto:pierscotto3@gmail.com">Enviar por Correo Electrónico</a>
+              </div>
+            </form>
+          </section>
+        </div>
+      </section>
+
+      <section class="container section" id="ofertas">
+        <div class="promo-banner reveal">
+          <div class="promo-banner__lead">
+            <span class="eyebrow">Promociones exclusivas</span>
+            <h2>Descubrí ofertas especiales en notebooks, PCs, TVs y smartphones con precios competitivos y tecnología de última generación.</h2>
+          </div>
+
+          <div class="promo-banner__cards">
+            <article>
+              <h3>Productos destacados</h3>
+              <p>Equipos seleccionados con el mejor equilibrio entre rendimiento, diseño y calidad para trabajo, estudio y entretenimiento.</p>
+            </article>
+            <article>
+              <h3>Tecnología premium</h3>
+              <p>Una experiencia visual moderna y profesional, enfocada en mostrar dispositivos innovadores con una estética limpia y comercial.</p>
+            </article>
+            <article>
+              <h3>Las mejores marcas</h3>
+              <p>Encontrá notebooks, computadoras, televisores y celulares de marcas reconocidas con garantía y alto rendimiento.</p>
+            </article>
+            <article>
+              <h3>Ofertas por tiempo limitado</h3>
+              <p>Aprovechá descuentos especiales y campañas exclusivas en productos tecnológicos destacados.</p>
+            </article>
+            <article class="promo-banner__cards--wide">
+              <h3>Todo en tecnología en un solo lugar</h3>
+              <p>Desde PCs gamer hasta Smart TVs y smartphones de última generación, explorá un catálogo pensado para cada necesidad.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="container section" id="destacados">
+        <div class="section__heading section__heading--split reveal">
+          <div>
+            <span class="eyebrow">Vitrina dinámica</span>
+            <h2>Productos destacados</h2>
+          </div>
+          <div class="catalog-controls">
+            <label class="search-box">
+              <span>Buscar</span>
+              <input id="searchInput" type="search" placeholder="PC, notebook, TV, smartphone..." />
+            </label>
+            <label class="search-box search-box--select">
+              <span>Ordenar</span>
+              <select id="sortSelect">
+                <option value="default">Destacados</option>
+                <option value="price-asc">Precio: menor a mayor</option>
+                <option value="price-desc">Precio: mayor a menor</option>
+                <option value="name-asc">Nombre: A-Z</option>
+                <option value="name-desc">Nombre: Z-A</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="filters-panel reveal">
+          <div class="filters-panel__group">
+            <span class="eyebrow">Categorías</span>
+            <div class="category-grid">
+              <button class="category-chip is-active" data-filter="all">Todo</button>
+              <button class="category-chip" data-filter="pc">PC</button>
+              <button class="category-chip" data-filter="notebook">Notebook</button>
+              <button class="category-chip" data-filter="tv">TV</button>
+              <button class="category-chip" data-filter="smartphone">Smartphone</button>
+              <button class="category-chip" data-filter="gaming">Gaming</button>
+              <button class="category-chip" data-filter="audio">Audio</button>
+            </div>
+          </div>
+
+          <div class="filters-panel__group filters-panel__group--brands">
+            <span class="eyebrow">Marcas</span>
+            <div class="brand-grid">
+              <button class="category-chip is-active" data-brand="all">Todas las Marcas</button>
+              <button class="category-chip" data-brand="MSI">MSI</button>
+              <button class="category-chip" data-brand="DELL">Dell</button>
+              <button class="category-chip" data-brand="ACER">Acer</button>
+              <button class="category-chip" data-brand="ASUS">ASUS</button>
+              <button class="category-chip" data-brand="HP">HP</button>
+              <button class="category-chip" data-brand="LENOVO">Lenovo</button>
+              <button class="category-chip" data-brand="SAMSUNG">Samsung</button>
+              <button class="category-chip" data-brand="MICROSOFT">Microsoft</button>
+              <button class="category-chip" data-brand="GIGABYTE">Gigabyte</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-grid" id="productGrid"></div>
+      </section>
+
+      <section class="container section section--split">
+        <div class="feature-card reveal">
+          <span class="eyebrow">Asesoría tecnológica</span>
+          <h3>Equipamos empresas con soluciones reales</h3>
+          <p>Te ayudamos a elegir notebooks, PCs y accesorios que mejoran productividad, seguridad y continuidad operativa.</p>
+        </div>
+        <div class="feature-card reveal">
+          <span class="eyebrow">Atención corporativa</span>
+          <h3>Compras por volumen para cada equipo</h3>
+          <p>Armamos propuestas a medida para oficinas, pymes y áreas IT con opciones de renovación y crecimiento escalable.</p>
+        </div>
+        <div class="feature-card reveal">
+          <span class="eyebrow">Compromiso NovaTech</span>
+          <h3>Tecnología confiable para crecer</h3>
+          <p>Nos enfocamos en ofrecer productos de marcas líderes para impulsar la transformación digital de tu empresa.</p>
+        </div>
+      </section>
+
+      <section class="container section" id="marcas">
+        <div class="section__heading reveal">
+          <span class="eyebrow">Marcas y aliados</span>
+          <h2>Una franja de confianza para vender más</h2>
+        </div>
+        <div class="brand-strip reveal">
+          <article class="brand-strip__item">
+            <img src="LOGOS/ASUS.png" alt="ASUS" loading="lazy" />
+            <span>ASUS</span>
+          </article>
+          <article class="brand-strip__item">
+            <img src="LOGOS/MSI.png" alt="MSI" loading="lazy" />
+            <span>MSI</span>
+          </article>
+          <article class="brand-strip__item">
+            <img src="LOGOS/HP.png" alt="HP" loading="lazy" />
+            <span>HP</span>
+          </article>
+          <article class="brand-strip__item">
+            <img src="LOGOS/LENOVO.jpg" alt="Lenovo" loading="lazy" />
+            <span>Lenovo</span>
+          </article>
+          <article class="brand-strip__item">
+            <img src="LOGOS/SAMSUNG.png" alt="Samsung" loading="lazy" />
+            <span>Samsung</span>
+          </article>
+          <article class="brand-strip__item">
+            <img src="LOGOS/GIGABYTE.png" alt="Gigabyte" loading="lazy" />
+            <span>Gigabyte</span>
+          </article>
+        </div>
+      </section>
+
+    </main>
+
+    <aside class="cart-drawer" id="cartDrawer" aria-hidden="true">
+      <div class="cart-drawer__header">
+        <h2>Tu carrito</h2>
+        <button id="closeCart" aria-label="Cerrar carrito">Cerrar</button>
+      </div>
+      <div class="cart-drawer__body" id="cartItems"></div>
+      <div class="cart-drawer__footer">
+        <div>
+          <span>Total</span>
+          <strong id="cartTotal">U$ 0</strong>
+        </div>
+        <button class="btn btn--primary btn--full">Ir a checkout</button>
+      </div>
+    </aside>
+
+    <div class="overlay" id="overlay"></div>
+
+    <script src="app.js?v=20260524-1"></script>
+  </body>
+</html>

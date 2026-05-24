@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="NovaTech Admin: panel privado para cargar productos y administrar el catálogo." />
+    <title>NovaTech Admin | Panel privado</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-grid"></div>
+    <div class="bg-orb bg-orb-a"></div>
+    <div class="bg-orb bg-orb-b"></div>
+
+    <header class="topbar">
+      <div class="container topbar__inner">
+        <p>Panel privado de administración del catálogo.</p>
+        <div class="topbar__actions">
+          <a href="index.html">Volver a la tienda</a>
+          <a href="#carga-productos">Carga simple</a>
+          <a href="#carga-masiva">Carga masiva</a>
+          <a href="#equipos">Equipos cargados</a>
+        </div>
+      </div>
+    </header>
+
+    <nav class="navbar">
+      <div class="container navbar__inner">
+        <a class="brand" href="index.html">
+          <span class="brand__mark">N</span>
+          <span class="brand__text">
+            <strong>NovaTech Admin</strong>
+            <small>Acceso privado</small>
+          </span>
+        </a>
+
+        <a class="cart-button" href="#equipos">
+          <span>Equipos</span>
+          <strong>Editar</strong>
+        </a>
+      </div>
+    </nav>
+
+    <main id="inicio">
+      <section class="container section">
+        <div class="hero__content reveal" style="max-width: 780px;">
+          <span class="eyebrow">Administración</span>
+          <h1>Panel privado para cargar y limpiar productos.</h1>
+          <p>
+            Desde aquí se hace la subida manual, el pegado masivo de WhatsApp y la limpieza total del catálogo.
+            La tienda pública no muestra estos controles.
+          </p>
+        </div>
+      </section>
+
+      <section class="container section" id="carga-productos">
+        <div class="section__heading reveal">
+          <span class="eyebrow">Carga simple</span>
+          <h2>Subí productos con persistencia real</h2>
+        </div>
+
+        <div class="upload-grid">
+          <form class="upload-card reveal" id="productForm">
+            <div class="upload-card__header">
+              <h3>Formulario rápido</h3>
+              <p id="productFormMode">Modo alta: cargá un producto nuevo.</p>
+            </div>
+
+            <div class="upload-card__fields">
+              <label>
+                <span>Nombre</span>
+                <input name="name" type="text" placeholder="Notebook Gamer X15" required />
+              </label>
+              <label>
+                <span>Categoría</span>
+                <select name="category" required>
+                  <option value="pc">PC</option>
+                  <option value="notebook">Notebook</option>
+                  <option value="tv">TV</option>
+                  <option value="smartphone">Smartphone</option>
+                  <option value="gaming">Gaming</option>
+                  <option value="audio">Audio</option>
+                </select>
+              </label>
+              <label>
+                <span>Marca</span>
+                <input name="brand" type="text" placeholder="ASUS / MSI / LENOVO" />
+              </label>
+              <label>
+                <span>Etiqueta</span>
+                <input name="tag" type="text" placeholder="OFERTA / NEW / TOP" />
+              </label>
+              <label>
+                <span>Precio</span>
+                <input name="price" type="number" min="0" step="1" placeholder="999" required />
+              </label>
+              <label>
+                <span>Imagen</span>
+                <input name="image" type="file" accept="image/*" />
+              </label>
+              <label class="upload-card__field--full">
+                <span>Imagen URL (opcional)</span>
+                <input name="imageUrl" type="url" placeholder="https://sitio.com/producto.jpg" />
+              </label>
+              <label>
+                <span>Procesador</span>
+                <input name="processor" type="text" placeholder="Intel Core Ultra 7 155H" />
+              </label>
+              <label>
+                <span>Memoria RAM</span>
+                <input name="ram" type="text" placeholder="16 GB DDR5" />
+              </label>
+              <label>
+                <span>Almacenamiento</span>
+                <input name="storage" type="text" placeholder="1 TB SSD" />
+              </label>
+              <label>
+                <span>Pantalla</span>
+                <input name="screen" type="text" placeholder="15.6\" Full HD 144 Hz" />
+              </label>
+              <label>
+                <span>GPU</span>
+                <input name="gpu" type="text" placeholder="NVIDIA RTX 4060 8 GB" />
+              </label>
+              <label>
+                <span>Sistema</span>
+                <input name="os" type="text" placeholder="Windows 11" />
+              </label>
+              <label class="upload-card__field--full">
+                <span>Idioma teclado</span>
+                <input name="language" type="text" placeholder="Español / Inglés" />
+              </label>
+            </div>
+
+            <div class="upload-card__actions">
+              <button class="btn btn--primary" type="submit" data-submit-product>Agregar producto</button>
+              <button class="btn btn--ghost" type="button" id="cancelEditProduct" hidden>Cancelar edición</button>
+              <button class="btn btn--ghost" type="button" id="resetProducts">Vaciar catálogo</button>
+            </div>
+          </form>
+
+          <aside class="upload-card upload-card--format reveal">
+            <div class="upload-card__header">
+              <h3>Formato sencillo</h3>
+              <p>Si después quieres cargar en lote, este es el objeto que usamos.</p>
+            </div>
+            <pre class="code-sample"><code>{
+  "name": "Notebook Ultra 14\" OLED",
+  "category": "notebook",
+  "tag": "TOP",
+  "price": 1299,
+  "image": "https://tusitio.com/imagen.jpg"
+}</code></pre>
+            <p class="upload-note">
+              La carga queda sincronizada con MySQL cuando el backend está activo.
+            </p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="container section" id="carga-masiva">
+        <div class="section__heading reveal">
+          <span class="eyebrow">Carga masiva</span>
+          <h2>Pegá tu listado de WhatsApp y el sistema lo convierte</h2>
+        </div>
+
+        <div class="bulk-grid">
+          <form class="upload-card reveal" id="bulkForm">
+            <div class="upload-card__header">
+              <h3>Importar texto</h3>
+              <p>Una línea por producto. El sistema toma el nombre, el precio y crea el artículo automáticamente.</p>
+            </div>
+
+            <label class="bulk-label">
+              <span>Listado del proveedor</span>
+              <textarea id="bulkInput" rows="14" placeholder="NB ACER ASPIRE 14 ... $975,00"></textarea>
+            </label>
+
+            <div class="upload-card__actions">
+              <button class="btn btn--primary" type="submit">Importar listado</button>
+              <button class="btn btn--ghost" type="button" id="fillSampleBulk">Cargar ejemplo</button>
+              <button class="btn btn--ghost" type="button" id="clearUploads">Borrar todo lo subido</button>
+            </div>
+          </form>
+
+          <aside class="upload-card upload-card--format reveal">
+            <div class="upload-card__header">
+              <h3>Cómo lo procesa</h3>
+              <p>El sistema reduce el nombre para que la tarjeta ocupe menos espacio y aplica el cálculo comercial.</p>
+            </div>
+            <ul class="formula-list">
+              <li>1. Toma el precio del mayorista sin IVA.</li>
+              <li>2. Suma 10% para costo ajustado.</li>
+              <li>3. Suma 17% sobre ese valor para tu precio final.</li>
+              <li>4. Convierte <strong>NB</strong> en categoría Notebook y <strong>TAB</strong> en Tablet/2 en 1 si aparece.</li>
+              <li>5. Genera un título corto para la vitrina, manteniendo el detalle completo en el dato original.</li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+
+      <section class="container section" id="equipos">
+        <div class="section__heading section__heading--split reveal">
+          <div>
+            <span class="eyebrow">Catálogo editable</span>
+            <h2>Equipos cargados</h2>
+            <p>Desde acá podés revisar lo que ve el cliente y editar cada producto.</p>
+          </div>
+          <div class="catalog-controls">
+            <label class="search-box">
+              <span>Buscar</span>
+              <input id="searchInput" type="search" placeholder="PC, notebook, TV, smartphone..." />
+            </label>
+            <label class="search-box search-box--select">
+              <span>Ordenar</span>
+              <select id="sortSelect">
+                <option value="default">Destacados</option>
+                <option value="price-asc">Precio: menor a mayor</option>
+                <option value="price-desc">Precio: mayor a menor</option>
+                <option value="name-asc">Nombre: A-Z</option>
+                <option value="name-desc">Nombre: Z-A</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="filters-panel reveal">
+          <div class="filters-panel__group">
+            <span class="eyebrow">Categorías</span>
+            <div class="category-grid">
+              <button class="category-chip is-active" data-filter="all">Todo</button>
+              <button class="category-chip" data-filter="pc">PC</button>
+              <button class="category-chip" data-filter="notebook">Notebook</button>
+              <button class="category-chip" data-filter="tv">TV</button>
+              <button class="category-chip" data-filter="smartphone">Smartphone</button>
+              <button class="category-chip" data-filter="gaming">Gaming</button>
+              <button class="category-chip" data-filter="audio">Audio</button>
+            </div>
+          </div>
+
+          <div class="filters-panel__group filters-panel__group--brands">
+            <span class="eyebrow">Marcas</span>
+            <div class="brand-grid">
+              <button class="category-chip is-active" data-brand="all">Todas</button>
+              <button class="category-chip" data-brand="MSI">MSI</button>
+              <button class="category-chip" data-brand="DELL">Dell</button>
+              <button class="category-chip" data-brand="ACER">Acer</button>
+              <button class="category-chip" data-brand="ASUS">ASUS</button>
+              <button class="category-chip" data-brand="HP">HP</button>
+              <button class="category-chip" data-brand="LENOVO">Lenovo</button>
+              <button class="category-chip" data-brand="SAMSUNG">Samsung</button>
+              <button class="category-chip" data-brand="MICROSOFT">Microsoft</button>
+              <button class="category-chip" data-brand="GIGABYTE">Gigabyte</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="product-grid" id="productGrid"></div>
+      </section>
+    </main>
+
+    <div class="overlay" id="overlay"></div>
+    <script src="app.js?v=20260524-1"></script>
+  </body>
+</html>
