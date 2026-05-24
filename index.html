@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#071420" />
     <meta name="robots" content="index,follow,max-image-preview:large" />
-    <meta name="description" content="NovaTech Store: tienda moderna de tecnología con PCs, notebooks, TVs, smartphones y periféricos." />
+    <meta name="description" content="Pacto Store: tienda moderna de tecnología con PCs, notebooks, TVs, smartphones y periféricos." />
     <link rel="canonical" href="https://novatech-store-pier.onrender.com/" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="es_PY" />
-    <meta property="og:site_name" content="NovaTech Store" />
-    <meta property="og:title" content="NovaTech Store | Tecnología que destaca" />
+    <meta property="og:site_name" content="Pacto Store" />
+    <meta property="og:title" content="Pacto Store | Tecnología que destaca" />
     <meta property="og:description" content="Tienda moderna de tecnología con PCs, notebooks, TVs, smartphones y periféricos." />
     <meta property="og:url" content="https://novatech-store-pier.onrender.com/" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="NovaTech Store | Tecnología que destaca" />
+    <meta name="twitter:title" content="Pacto Store | Tecnología que destaca" />
     <meta name="twitter:description" content="Tienda moderna de tecnología con PCs, notebooks, TVs, smartphones y periféricos." />
-    <title>NovaTech Store | Tecnología que destaca</title>
+    <title>Pacto Store | Tecnología que destaca</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -25,7 +25,7 @@
       {
         "@context": "https://schema.org",
         "@type": "Store",
-        "name": "NovaTech Store",
+        "name": "Pacto Store",
         "url": "https://novatech-store-pier.onrender.com/",
         "email": "pierscotto3@gmail.com",
         "telephone": "+595983159658",
@@ -43,12 +43,17 @@
 
     <header class="topbar">
       <div class="container topbar__inner">
-        <p>Envíos rápidos, cuotas y soporte experto. Garantía oficial en toda la tienda.</p>
+        <p>Envíos rápidos y Soporte especializado.</p>
+        <p>Todos nuestros productos cuentan con garantía oficial para que compres con total confianza.</p>
         <div class="topbar__actions">
-          <a href="#ofertas">Ofertas</a>
+          <a href="#ofertas">Inicio de la Página</a>
           <a href="#categorias">Categorías</a>
           <a href="#contacto">Contacto</a>
           <a class="topbar__admin-link" href="admin.html">⚙ Admin</a>
+          <button class="cart-button cart-button--topbar" id="openCart" type="button">
+            <span>Carrito</span>
+            <strong id="cartCount">0</strong>
+          </button>
         </div>
       </div>
     </header>
@@ -56,10 +61,12 @@
     <nav class="navbar">
       <div class="container navbar__inner">
         <a class="brand" href="#inicio">
-          <span class="brand__mark">N</span>
+          <span class="brand__mark brand__mark--logo">
+            <img src="LOGOS/PACTO%20STORE.png" alt="Pacto Store" loading="eager" decoding="async" />
+          </span>
           <span class="brand__text">
-            <strong>NovaTech</strong>
-            <small>Electrónica premium</small>
+            <strong>Pacto Store</strong>
+            <small>Electrónica Empresarial</small>
           </span>
         </a>
 
@@ -72,22 +79,16 @@
           <a href="#marcas">Marcas</a>
           <a href="#contacto">Contacto</a>
         </div>
-
-        <button class="cart-button" id="openCart">
-          <span>Carrito</span>
-          <strong id="cartCount">0</strong>
-        </button>
       </div>
     </nav>
 
     <main id="inicio">
       <section class="hero container">
-        <div class="hero__content reveal">
-          <span class="eyebrow">Tecnología de alto impacto</span>
-          <h1>La tienda moderna para PCs, notebooks, TVs y smartphones.</h1>
-          <p>
-        
-          </p>
+        <div class="hero__content hero__content--center reveal">
+          <img src="LOGOS/PACTO%20STORE.png" alt="Pacto Store" loading="eager" decoding="async" class="hero__logo" />
+          <p>En PACTO Store reunimos tecnología moderna y confiable para empresas y hogares, 
+            con envíos a todo el país y un servicio de entrega rápido, seguro y pensado para que
+             recibas tus productos con total tranquilidad.</p>
 
           <div class="hero__cta">
             <a class="btn btn--primary" href="#destacados">Ver productos</a>
@@ -208,6 +209,7 @@
                 <option value="name-desc">Nombre: Z-A</option>
               </select>
             </label>
+            <button class="btn btn--ghost catalog-controls__pdf" id="exportProductsPdf" type="button">Generar PDF</button>
           </div>
         </div>
 
@@ -236,6 +238,8 @@
               <button class="category-chip" data-brand="HP">HP</button>
               <button class="category-chip" data-brand="LENOVO">Lenovo</button>
               <button class="category-chip" data-brand="SAMSUNG">Samsung</button>
+              <button class="category-chip" data-brand="XIAOMI">Xiaomi</button>
+              <button class="category-chip" data-brand="APPLE">Apple</button>
               <button class="category-chip" data-brand="MICROSOFT">Microsoft</button>
               <button class="category-chip" data-brand="GIGABYTE">Gigabyte</button>
             </div>
@@ -257,7 +261,7 @@
           <p>Armamos propuestas a medida para oficinas, pymes y áreas IT con opciones de renovación y crecimiento escalable.</p>
         </div>
         <div class="feature-card reveal">
-          <span class="eyebrow">Compromiso NovaTech</span>
+          <span class="eyebrow">Compromiso PACTO STORE</span>
           <h3>Tecnología confiable para crecer</h3>
           <p>Nos enfocamos en ofrecer productos de marcas líderes para impulsar la transformación digital de tu empresa.</p>
         </div>
@@ -274,6 +278,14 @@
             <span>ASUS</span>
           </article>
           <article class="brand-strip__item">
+            <img src="LOGOS/DELL.jpg" alt="Dell" loading="lazy" />
+            <span>Dell</span>
+          </article>
+          <article class="brand-strip__item">
+            <img src="LOGOS/ACER.png" alt="Acer" loading="lazy" />
+            <span>Acer</span>
+          </article>
+          <article class="brand-strip__item">
             <img src="LOGOS/MSI.png" alt="MSI" loading="lazy" />
             <span>MSI</span>
           </article>
@@ -288,6 +300,18 @@
           <article class="brand-strip__item">
             <img src="LOGOS/SAMSUNG.png" alt="Samsung" loading="lazy" />
             <span>Samsung</span>
+          </article>
+          <article class="brand-strip__item">
+            <img src="LOGOS/Xiaomi.png" alt="Xiaomi" loading="lazy" />
+            <span>Xiaomi</span>
+          </article>
+          <article class="brand-strip__item">
+            <img src="LOGOS/APPLE.png" alt="Apple" loading="lazy" />
+            <span>Apple</span>
+          </article>
+          <article class="brand-strip__item">
+            <img src="LOGOS/MICROSOFT.png" alt="Microsoft" loading="lazy" />
+            <span>Microsoft</span>
           </article>
           <article class="brand-strip__item">
             <img src="LOGOS/GIGABYTE.png" alt="Gigabyte" loading="lazy" />
@@ -309,12 +333,16 @@
           <span>Total</span>
           <strong id="cartTotal">U$ 0</strong>
         </div>
-        <button class="btn btn--primary btn--full">Ir a checkout</button>
+        <div class="cart-drawer__footer-actions">
+          <button class="btn btn--ghost btn--full" id="continueShopping" type="button">Seguir comprando</button>
+          <button class="btn btn--primary btn--full" id="checkoutCart" type="button">Ir a checkout</button>
+        </div>
       </div>
     </aside>
 
     <div class="overlay" id="overlay"></div>
 
-    <script src="app.js?v=20260524-2" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="app.js?v=20260524-5" defer></script>
   </body>
 </html>

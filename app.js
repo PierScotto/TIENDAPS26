@@ -9,6 +9,7 @@ const WHATSAPP_SALES_NUMBER = '+595983159658';
 const productGrid = document.getElementById('productGrid');
 const searchInput = document.getElementById('searchInput');
 const sortSelect = document.getElementById('sortSelect');
+const uploadBatchSelect = document.getElementById('uploadBatchSelect');
 const categoryButtons = [...document.querySelectorAll('[data-filter]')];
 const brandButtons = [...document.querySelectorAll('[data-brand]')];
 const cartDrawer = document.getElementById('cartDrawer');
@@ -16,6 +17,9 @@ const overlay = document.getElementById('overlay');
 const cartItems = document.getElementById('cartItems');
 const cartCount = document.getElementById('cartCount');
 const cartTotal = document.getElementById('cartTotal');
+const checkoutCart = document.getElementById('checkoutCart');
+const continueShopping = document.getElementById('continueShopping');
+const pdfExportButton = document.getElementById('exportProductsPdf');
 const openCart = document.getElementById('openCart');
 const closeCart = document.getElementById('closeCart');
 const menuToggle = document.getElementById('menuToggle');
@@ -26,6 +30,9 @@ const bulkForm = document.getElementById('bulkForm');
 const bulkInput = document.getElementById('bulkInput');
 const fillSampleBulk = document.getElementById('fillSampleBulk');
 const clearUploads = document.getElementById('clearUploads');
+const deleteVisibleUploads = document.getElementById('deleteVisibleUploads');
+const deleteSelectedBatch = document.getElementById('deleteSelectedBatch');
+const refreshBatchList = document.getElementById('refreshBatchList');
 const productFormMode = document.getElementById('productFormMode');
 const cancelEditProduct = document.getElementById('cancelEditProduct');
 const submitProductButton = document.querySelector('[data-submit-product]');
@@ -45,11 +52,218 @@ function formatPrice(value) {
   return `U$ ${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 }
 
+function formatBatchLabel(prefix, createdAt) {
+  const date = createdAt ? new Date(createdAt) : new Date();
+  return `${prefix} • ${date.toLocaleDateString('es-PY')} ${date.toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit' })}`;
+}
+
+function createUploadBatchMeta(prefix) {
+  const createdAt = new Date().toISOString();
+  return {
+    id: `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    label: formatBatchLabel(prefix === 'bulk' ? 'Carga masiva' : 'Carga simple', createdAt),
+    createdAt,
+  };
+}
+
+function getProductIdentifier(product) {
+  return String(product?.id || product?.sku || product?.code || 'sin-id').trim();
+}
+
+function getProductDisplayId(product) {
+  return getProductIdentifier(product).toUpperCase();
+}
+
+function getUploadBatchKey(product) {
+  if (!product || product.id.startsWith('base-')) return '';
+  return product.batchId || 'legacy-custom';
+}
+
+function getUploadBatchLabel(product) {
+  if (!product || product.id.startsWith('base-')) return '';
+  return product.batchLabel || (product.batchId ? 'Carga sin nombre' : 'Subidas anteriores');
+}
+
 function buildWhatsAppProductLink(product) {
   const cleanPhone = String(WHATSAPP_SALES_NUMBER).replace(/\D/g, '');
   const name = product.displayName || product.fullName || product.name;
-  const message = `Hola! Me interesa este equipo: ${name}. Precio publicado: ${formatPrice(product.price)}. ¿Está disponible?`;
+  const identifier = getProductDisplayId(product);
+  const message = `Hola! Me interesa este equipo: ${name}. ID: ${identifier}. Precio publicado: ${formatPrice(product.price)}. ¿Está disponible?`;
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+}
+
+function buildWhatsAppCartLink() {
+  const cleanPhone = String(WHATSAPP_SALES_NUMBER).replace(/\D/g, '');
+  const total = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
+  const lines = cart.map((item, index) => {
+    const quantityLabel = item.quantity > 1 ? ` x${item.quantity}` : '';
+    const lineTotal = formatPrice(item.price * item.quantity);
+    return `${index + 1}. ${item.name}${quantityLabel} - ${lineTotal}`;
+  });
+
+  const message = [
+    'Hola, quiero comprar estos productos de Pacto Store:',
+    '',
+    ...lines,
+    '',
+    `Total: ${formatPrice(total)}`,
+    'Quedo atento para coordinar la compra.',
+  ].join('\n');
+
+  return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+}
+
+const CATEGORY_LABELS = {
+  all: 'Todo',
+  pc: 'PC',
+  notebook: 'Notebook',
+  tv: 'TV',
+  smartphone: 'Smartphone',
+  gaming: 'Gaming',
+  audio: 'Audio',
+  tablet: 'Tablet',
+};
+
+const BRAND_LABELS = {
+  all: 'Todas las marcas',
+  MSI: 'MSI',
+  DELL: 'Dell',
+  ACER: 'Acer',
+  ASUS: 'ASUS',
+  HP: 'HP',
+  LENOVO: 'Lenovo',
+  SAMSUNG: 'Samsung',
+  XIAOMI: 'Xiaomi',
+  APPLE: 'Apple',
+  MICROSOFT: 'Microsoft',
+  GIGABYTE: 'Gigabyte',
+};
+
+const SORT_LABELS = {
+  default: 'Destacados',
+  'price-asc': 'Precio: menor a mayor',
+  'price-desc': 'Precio: mayor a menor',
+  'name-asc': 'Nombre: A-Z',
+  'name-desc': 'Nombre: Z-A',
+};
+
+function getVisibleFilterSummary() {
+  return [
+    `Categoría: ${CATEGORY_LABELS[activeFilter] || activeFilter}`,
+    `Marca: ${BRAND_LABELS[activeBrand] || activeBrand}`,
+    `Búsqueda: ${searchTerm ? searchTerm : 'Sin búsqueda'}`,
+    `Orden: ${SORT_LABELS[activeSort] || SORT_LABELS.default}`,
+  ].join(' | ');
+}
+
+function getPdfSpecsSummary(product) {
+  const specs = product.specs || {};
+  return [
+    specs.processor && `Procesador: ${specs.processor}`,
+    specs.ram && `RAM: ${specs.ram}`,
+    specs.storage && `Almacenamiento: ${specs.storage}`,
+    specs.color && `Color: ${specs.color}`,
+    specs.screen && `Pantalla: ${specs.screen}`,
+    specs.gpu && `GPU: ${specs.gpu}`,
+    specs.os && `Sistema: ${specs.os}`,
+  ].filter(Boolean).join(' | ');
+}
+
+function getPdfProductLine(product, index) {
+  const productTitle = `${index + 1}. ${product.displayName || product.fullName || product.name}`;
+  const productMeta = [
+    `ID: ${getProductDisplayId(product)}`,
+    `Categoría: ${(product.category || '').toUpperCase()}`,
+    product.brand ? `Marca: ${product.brand}` : '',
+    product.tag && product.tag.toUpperCase() !== 'WHATSAPP' ? `Etiqueta: ${product.tag}` : '',
+    getPdfSpecsSummary(product),
+    `Precio: ${formatPrice(product.price)}`,
+  ].filter(Boolean).join(' | ');
+
+  return { productTitle, productMeta };
+}
+
+function exportVisibleProductsToPdf() {
+  const visibleProducts = getVisibleProducts();
+  if (!visibleProducts.length) {
+    window.alert('No hay productos para exportar con los filtros actuales.');
+    return;
+  }
+
+  const pdfNamespace = window.jspdf;
+  if (!pdfNamespace || !pdfNamespace.jsPDF) {
+    window.alert('No se pudo cargar el generador de PDF.');
+    return;
+  }
+
+  const { jsPDF } = pdfNamespace;
+  const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 14;
+  const contentWidth = pageWidth - margin * 2;
+  const cardPadding = 4;
+  const lineHeight = 5;
+  let cursorY = margin;
+
+  const title = 'Pacto Store - Catálogo de productos';
+  const subtitle = getVisibleFilterSummary();
+
+  doc.setTextColor(7, 17, 29);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.text(title, margin, cursorY);
+
+  cursorY += 8;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text(`Exportado el ${new Date().toLocaleDateString('es-PY')}`, margin, cursorY);
+  cursorY += 5;
+  doc.text(subtitle, margin, cursorY, { maxWidth: contentWidth });
+  cursorY += 10;
+
+  visibleProducts.forEach((product, index) => {
+    const { productTitle, productMeta } = getPdfProductLine(product, index);
+
+    const titleLines = doc.splitTextToSize(productTitle, contentWidth - cardPadding * 2);
+    const metaLines = doc.splitTextToSize(productMeta, contentWidth - cardPadding * 2);
+    const blockHeight = (titleLines.length * 6) + (metaLines.length * 5) + 10;
+
+    if (cursorY + blockHeight > pageHeight - margin) {
+      doc.addPage();
+      cursorY = margin;
+    }
+
+    doc.setDrawColor(214, 226, 238);
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(margin, cursorY, contentWidth, blockHeight, 3, 3, 'FD');
+
+    let blockY = cursorY + 7;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    titleLines.forEach((line) => {
+      doc.text(line, margin + cardPadding, blockY);
+      blockY += 6;
+    });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    metaLines.forEach((line) => {
+      doc.text(line, margin + cardPadding, blockY);
+      blockY += 5;
+    });
+
+    cursorY += blockHeight + 5;
+  });
+
+  const fileNameParts = [
+    'pacto-store',
+    activeBrand && activeBrand !== 'all' ? String(activeBrand).toLowerCase() : 'catalogo',
+    activeFilter && activeFilter !== 'all' ? String(activeFilter).toLowerCase() : '',
+    new Date().toISOString().slice(0, 10),
+  ].filter(Boolean);
+
+  doc.save(`${fileNameParts.join('-')}.pdf`);
 }
 
 const BRAND_LOGO_FILES = {
@@ -60,6 +274,8 @@ const BRAND_LOGO_FILES = {
   HP: 'HP.png',
   LENOVO: 'LENOVO.jpg',
   SAMSUNG: 'SAMSUNG.png',
+  XIAOMI: 'Xiaomi.png',
+  APPLE: 'APPLE.png',
   MICROSOFT: 'MICROSOFT.png',
   GIGABYTE: 'GIGABYTE.png',
 };
@@ -308,11 +524,12 @@ function getProductVisual(product) {
 function getSpecsRows(product) {
   if (!product.specs) return [];
 
-  const { processor, ram, storage, screen, gpu, os, language } = product.specs;
+  const { processor, ram, storage, color, screen, gpu, os, language } = product.specs;
   return [
     processor && ['Procesador', processor],
     ram && ['Memoria RAM', ram],
     storage && ['Almacenamiento', storage],
+    color && ['Color', color],
     screen && ['Pantalla', screen],
     gpu && ['GPU', gpu],
     os && ['Sistema', os],
@@ -371,6 +588,7 @@ function openDetailModal(product) {
     : `<span>${escapeHtml(product.icon || '🛍️')}</span>`;
 
   meta.innerHTML = `
+    <span>ID ${escapeHtml(getProductDisplayId(product))}</span>
     <span>${escapeHtml((product.category || '').toUpperCase())}</span>
     ${product.brand ? `<span>${escapeHtml(product.brand)}</span>` : ''}
     ${product.tag && product.tag.toUpperCase() !== 'WHATSAPP' ? `<span>${escapeHtml(product.tag)}</span>` : ''}
@@ -425,10 +643,39 @@ function detectCategory(rawName) {
   const upper = rawName.toUpperCase();
   if (upper.startsWith('NB')) return 'notebook';
   if (upper.startsWith('TAB')) return 'tablet';
-  if (upper.includes('SMARTPHONE') || upper.includes('PHONE')) return 'smartphone';
+  if (upper.startsWith('CEL') || upper.includes('SMARTPHONE') || upper.includes('PHONE') || upper.startsWith('MOB')) return 'smartphone';
+  if (upper.startsWith('AUD') || upper.includes('AUDIO') || upper.includes('SPEAKER') || upper.includes('HEADPHONE')) return 'audio';
   if (upper.includes('TV')) return 'tv';
   if (upper.includes('PC')) return 'pc';
   return 'notebook';
+}
+
+function parseMobileSpecs(rawName) {
+  const upper = rawName.toUpperCase();
+  const specs = {};
+  const segments = upper.split('/').map((part) => part.trim()).filter(Boolean);
+
+  const storageMatch = upper.match(/\b(\d{2,4})\s*GB\b/);
+  if (storageMatch) {
+    specs.storage = `${storageMatch[1]} GB`;
+  }
+
+  const ramSource = segments.length > 1 ? segments[1] : upper;
+  const ramMatch = ramSource.match(/\b(\d{1,2})\s*GB\b/);
+  if (ramMatch) {
+    specs.ram = `${ramMatch[1]} GB`;
+  }
+
+  const colorSource = segments.length > 1 ? segments[1] : upper;
+  const colorMatch = colorSource.match(/\b([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s-]*?)\s*(?:COLOR|COLOUR)?$/);
+  if (colorMatch) {
+    const color = colorMatch[1].replace(/\b(\d{1,2}\s*GB|RAM)\b/gi, '').replace(/\s{2,}/g, ' ').trim();
+    if (color && !/^(GB|RAM)$/i.test(color)) {
+      specs.color = color;
+    }
+  }
+
+  return specs;
 }
 
 function detectBrand(rawName) {
@@ -441,6 +688,8 @@ function detectBrand(rawName) {
     'HP',
     'LENOVO',
     'SAMSUNG',
+    'XIAOMI',
+    'REDMI',
     'MICROSOFT',
     'GIGABYTE',
     'ALIENWARE',
@@ -448,7 +697,14 @@ function detectBrand(rawName) {
     'APPLE',
   ];
 
-  return brands.find((brand) => upper.includes(brand)) || 'OTRAS';
+  const detectedBrand = brands.find((brand) => upper.includes(brand));
+  return normalizeBrandKey(detectedBrand || 'OTRAS');
+}
+
+function normalizeBrandKey(brandValue) {
+  const normalized = String(brandValue || '').trim().toUpperCase();
+  if (normalized === 'REDMI') return 'XIAOMI';
+  return normalized;
 }
 
 function parseSpecs(rawName) {
@@ -565,7 +821,26 @@ function parseSpecs(rawName) {
   return specs;
 }
 
-function extractDisplayName(rawName) {
+function extractDisplayName(rawName, category = '') {
+  const upper = rawName.toUpperCase();
+
+  if (category === 'smartphone') {
+    return rawName
+      .replace(/^CEL\s+/i, '')
+      .replace(/^MOB\s+/i, '')
+      .replace(/\b\d{2,4}\s*GB\b.*$/i, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
+
+  if (category === 'audio') {
+    return rawName
+      .replace(/^AUD\s+/i, '')
+      .replace(/^AUDIO\s+/i, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
+
   return rawName
     .split('/')[0]
     .replace(/^(NB\/?TAB|NB|TAB)\s+/i, '')
@@ -579,7 +854,7 @@ function extractDisplayName(rawName) {
     .trim();
 }
 
-function parseSupplierLine(line) {
+function parseSupplierLine(line, batchMeta = null) {
   const trimmed = line.trim();
   if (!trimmed) return null;
 
@@ -592,8 +867,11 @@ function parseSupplierLine(line) {
   const rawName = trimmed.slice(0, priceMatch.index).trim();
   const category = detectCategory(rawName);
   const brand = detectBrand(rawName);
-  const specs = parseSpecs(rawName);
-  const displayName = extractDisplayName(rawName);
+  const specs = {
+    ...parseSpecs(rawName),
+    ...(category === 'smartphone' || category === 'audio' ? parseMobileSpecs(rawName) : {}),
+  };
+  const displayName = extractDisplayName(rawName, category);
   const costWithTax = rawPrice * 1.10;
   const salePrice = costWithTax * 1.17;
 
@@ -612,13 +890,17 @@ function parseSupplierLine(line) {
     sourceName: rawName,
     sourcePrice: rawPrice,
     image: '',
+    batchId: batchMeta?.id || `legacy-bulk-${Date.now()}`,
+    batchLabel: batchMeta?.label || formatBatchLabel('Carga masiva', batchMeta?.createdAt || new Date().toISOString()),
+    batchCreatedAt: batchMeta?.createdAt || new Date().toISOString(),
   };
 }
 
 function importSupplierList(text) {
+  const batchMeta = createUploadBatchMeta('bulk');
   const parsedProducts = String(text)
     .split(/\r?\n/)
-    .map(parseSupplierLine)
+    .map((line) => parseSupplierLine(line, batchMeta))
     .filter(Boolean);
 
   if (!parsedProducts.length) {
@@ -669,13 +951,17 @@ function clearUploadedProducts() {
   bulkInput.value = '';
   renderProducts();
   renderCart();
+  renderUploadBatchSelect();
 }
 
 function getVisibleProducts() {
   const filteredProducts = products.filter((product) => {
     const matchesFilter = activeFilter === 'all' || product.category === activeFilter;
-    const matchesBrand = activeBrand === 'all' || product.brand === activeBrand;
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesBrand = activeBrand === 'all' || normalizeBrandKey(product.brand) === normalizeBrandKey(activeBrand);
+    const searchValue = searchTerm.toLowerCase();
+    const matchesSearch = product.name.toLowerCase().includes(searchValue)
+      || String(product.displayName || '').toLowerCase().includes(searchValue)
+      || getProductIdentifier(product).toLowerCase().includes(searchValue);
     return matchesFilter && matchesBrand && matchesSearch;
   });
 
@@ -699,6 +985,106 @@ function getVisibleProducts() {
   }
 
   return sortedProducts;
+}
+
+function getCustomProducts() {
+  return products.filter((product) => !product.id.startsWith('base-'));
+}
+
+function getUploadBatches() {
+  const batches = new Map();
+
+  getCustomProducts().forEach((product) => {
+    const batchId = getUploadBatchKey(product) || 'legacy-custom';
+    const createdAt = product.batchCreatedAt || '';
+    const label = getUploadBatchLabel(product) || 'Subidas anteriores';
+
+    if (!batches.has(batchId)) {
+      batches.set(batchId, {
+        id: batchId,
+        label,
+        createdAt,
+        count: 0,
+      });
+    }
+
+    const batch = batches.get(batchId);
+    batch.count += 1;
+    if (!batch.createdAt || createdAt > batch.createdAt) {
+      batch.createdAt = createdAt;
+    }
+  });
+
+  return [...batches.values()].sort((left, right) => String(right.createdAt || '').localeCompare(String(left.createdAt || '')));
+}
+
+function renderUploadBatchSelect() {
+  if (!uploadBatchSelect) return;
+
+  const batches = getUploadBatches();
+  const currentValue = uploadBatchSelect.value;
+
+  uploadBatchSelect.innerHTML = batches.length
+    ? batches.map((batch) => `<option value="${escapeHtml(batch.id)}">${escapeHtml(batch.label)} (${batch.count})</option>`).join('')
+    : '<option value="">No hay tandas para borrar</option>';
+
+  if (batches.length) {
+    const nextValue = batches.some((batch) => batch.id === currentValue) ? currentValue : batches[0].id;
+    uploadBatchSelect.value = nextValue;
+  }
+}
+
+function removeProductsByIds(productIds) {
+  const idsToRemove = new Set(productIds);
+  const nextCustomProducts = getCustomProducts().filter((product) => !idsToRemove.has(product.id));
+  saveCustomProducts(nextCustomProducts);
+  renderProducts();
+}
+
+function deleteVisibleUploadedProducts() {
+  const visibleIds = getVisibleProducts()
+    .filter((product) => !product.id.startsWith('base-'))
+    .map((product) => product.id);
+
+  if (!visibleIds.length) {
+    window.alert('No hay productos subidos visibles para borrar con los filtros actuales.');
+    return;
+  }
+
+  const confirmed = window.confirm(`¿Querés eliminar ${visibleIds.length} producto(s) filtrado(s) en pantalla?`);
+  if (!confirmed) return;
+
+  removeProductsByIds(visibleIds);
+}
+
+function deleteSelectedUploadBatch() {
+  if (!uploadBatchSelect) return;
+
+  const batchId = uploadBatchSelect.value;
+  if (!batchId) {
+    window.alert('Seleccioná una tanda para eliminar.');
+    return;
+  }
+
+  const selectedBatch = getUploadBatches().find((batch) => batch.id === batchId);
+  if (!selectedBatch) {
+    window.alert('No encontré esa tanda.');
+    return;
+  }
+
+  const confirmed = window.confirm(`¿Querés eliminar la tanda "${selectedBatch.label}" con ${selectedBatch.count} producto(s)?`);
+  if (!confirmed) return;
+
+  const idsToRemove = getCustomProducts()
+    .filter((product) => getUploadBatchKey(product) === batchId)
+    .map((product) => product.id);
+
+  if (!idsToRemove.length) {
+    window.alert('Esa tanda ya no tiene productos.');
+    return;
+  }
+
+  removeProductsByIds(idsToRemove);
 }
 
 function renderSpecsBlock(product) {
@@ -766,6 +1152,8 @@ function renderProducts() {
   [...document.querySelectorAll('[data-add]')].forEach((button) => {
     button.addEventListener('click', () => addToCart(button.dataset.add));
   });
+
+  renderUploadBatchSelect();
 }
 
 function renderCart() {
@@ -779,6 +1167,12 @@ function renderCart() {
               <div>
                 <h4>${item.name}</h4>
                 <p>${formatPrice(item.price)} x ${item.quantity}</p>
+                <div class="cart-drawer__controls">
+                  <button type="button" class="cart-drawer__control" data-cart-action="decrease" data-cart-id="${item.id}">−</button>
+                  <span class="cart-drawer__quantity">${item.quantity}</span>
+                  <button type="button" class="cart-drawer__control" data-cart-action="increase" data-cart-id="${item.id}">+</button>
+                  <button type="button" class="cart-drawer__remove" data-cart-action="remove" data-cart-id="${item.id}">Quitar</button>
+                </div>
               </div>
               <strong>${formatPrice(item.price * item.quantity)}</strong>
             </div>
@@ -792,6 +1186,12 @@ function renderCart() {
 
   cartCount.textContent = String(count);
   cartTotal.textContent = formatPrice(total);
+
+  if (checkoutCart) {
+    checkoutCart.disabled = count === 0;
+    checkoutCart.setAttribute('aria-disabled', String(count === 0));
+  }
+
 }
 
 function addToCart(productId) {
@@ -807,6 +1207,27 @@ function addToCart(productId) {
 
   renderCart();
   openDrawer();
+}
+
+function removeFromCart(productId) {
+  const index = cart.findIndex((item) => item.id === productId);
+  if (index === -1) return;
+
+  cart.splice(index, 1);
+  renderCart();
+}
+
+function changeCartQuantity(productId, delta) {
+  const item = cart.find((entry) => entry.id === productId);
+  if (!item) return;
+
+  item.quantity += delta;
+  if (item.quantity <= 0) {
+    removeFromCart(productId);
+    return;
+  }
+
+  renderCart();
 }
 
 function hasAdminControls() {
@@ -825,6 +1246,19 @@ function closeDrawer() {
   cartDrawer.classList.remove('is-open');
   overlay.classList.remove('is-visible');
   cartDrawer.setAttribute('aria-hidden', 'true');
+}
+
+function checkoutViaWhatsApp() {
+  if (!cart.length) {
+    window.alert('Tu carrito está vacío. Agregá productos antes de ir a WhatsApp.');
+    return;
+  }
+
+  const whatsappUrl = buildWhatsAppCartLink();
+  const popup = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+  if (!popup) {
+    window.location.href = whatsappUrl;
+  }
 }
 
 function setActiveFilter(filter) {
@@ -877,6 +1311,30 @@ if (closeCart) {
 
 if (overlay) {
   overlay.addEventListener('click', closeDrawer);
+}
+
+if (deleteVisibleUploads) {
+  deleteVisibleUploads.addEventListener('click', deleteVisibleUploadedProducts);
+}
+
+if (deleteSelectedBatch) {
+  deleteSelectedBatch.addEventListener('click', deleteSelectedUploadBatch);
+}
+
+if (refreshBatchList) {
+  refreshBatchList.addEventListener('click', renderUploadBatchSelect);
+}
+
+if (checkoutCart) {
+  checkoutCart.addEventListener('click', checkoutViaWhatsApp);
+}
+
+if (continueShopping) {
+  continueShopping.addEventListener('click', closeDrawer);
+}
+
+if (pdfExportButton) {
+  pdfExportButton.addEventListener('click', exportVisibleProductsToPdf);
 }
 
 if (menuToggle && navLinks) {
@@ -933,6 +1391,28 @@ if (businessContactForm) {
 }
 
 document.addEventListener('click', (event) => {
+  const cartControl = event.target.closest('[data-cart-action]');
+  if (cartControl) {
+    const productId = cartControl.dataset.cartId;
+    const action = cartControl.dataset.cartAction;
+
+    if (action === 'increase') {
+      changeCartQuantity(productId, 1);
+      return;
+    }
+
+    if (action === 'decrease') {
+      changeCartQuantity(productId, -1);
+      return;
+    }
+
+    if (action === 'remove') {
+      removeFromCart(productId);
+    }
+
+    return;
+  }
+
   const detailButton = event.target.closest('[data-detail]');
   if (!detailButton) return;
 
@@ -1029,6 +1509,13 @@ if (hasAdminControls()) {
       specs: Object.keys(mergedSpecs).length ? mergedSpecs : (existingProduct?.specs || {}),
       icon: getProductIcon(category),
     };
+
+    if (!existingProduct) {
+      const batchMeta = createUploadBatchMeta('single');
+      nextProduct.batchId = batchMeta.id;
+      nextProduct.batchLabel = batchMeta.label;
+      nextProduct.batchCreatedAt = batchMeta.createdAt;
+    }
 
     if (editingProductId) {
       const nextCustomProducts = customProducts.map((product) => (product.id === editingProductId ? nextProduct : product));
