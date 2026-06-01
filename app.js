@@ -4,7 +4,7 @@ const STORAGE_KEY = 'novatech-custom-products';
 const API_BASE_URL = String(window.NOVATECH_API_BASE_URL || '').replace(/\/$/, '');
 const PRODUCTS_API_PATH = '/api/products';
 const LEADS_API_PATH = '/api/leads';
-const WHATSAPP_SALES_NUMBER = '+595983159658';
+const WHATSAPP_SALES_NUMBER = '+595982213504';
 
 const productGrid = document.getElementById('productGrid');
 const searchInput = document.getElementById('searchInput');
@@ -28,6 +28,7 @@ const productForm = document.getElementById('productForm');
 const resetProducts = document.getElementById('resetProducts');
 const bulkForm = document.getElementById('bulkForm');
 const bulkInput = document.getElementById('bulkInput');
+const bulkMarginInput = document.getElementById('bulkMarginPercent');
 const fillSampleBulk = document.getElementById('fillSampleBulk');
 const clearUploads = document.getElementById('clearUploads');
 const deleteVisibleUploads = document.getElementById('deleteVisibleUploads');
@@ -47,6 +48,10 @@ let searchTerm = '';
 let activeSort = 'default';
 let editingProductId = '';
 let products = loadProducts();
+
+const DEFAULT_BULK_TAX_PERCENT = 10;
+const DEFAULT_BULK_MARGIN_PERCENT = 17;
+const GENERATED_IMAGE_CACHE = new Map();
 
 function formatPrice(value) {
   return `U$ ${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
@@ -137,6 +142,7 @@ const BRAND_LABELS = {
   APPLE: 'Apple',
   MICROSOFT: 'Microsoft',
   GIGABYTE: 'Gigabyte',
+  JBL: 'JBL',
 };
 
 const SORT_LABELS = {
@@ -269,7 +275,7 @@ function exportVisibleProductsToPdf() {
 const BRAND_LOGO_FILES = {
   MSI: 'MSI.png',
   DELL: 'DELL.jpg',
-  ACER: 'ACER.png',
+  ACER: 'ACER2.jpg',
   ASUS: 'ASUS.png',
   HP: 'HP.png',
   LENOVO: 'LENOVO.jpg',
@@ -278,10 +284,26 @@ const BRAND_LOGO_FILES = {
   APPLE: 'APPLE.png',
   MICROSOFT: 'MICROSOFT.png',
   GIGABYTE: 'GIGABYTE.png',
+  JBL: 'JBL.png',
+};
+
+const CATEGORY_LOGO_FILES = {
+  ALL: 'PACTO STORE.png',
+  PC: 'pc.jpg',
+  NOTEBOOK: 'notebook.jpg',
+  TV: 'TV.jpg',
+  SMARTPHONE: 'SMARTPHONE.jpeg',
+  GAMING: 'GAMIG.jpg',
+  AUDIO: 'AUDIO.jpg',
 };
 
 function getBrandLogoPath(brand) {
   const fileName = BRAND_LOGO_FILES[brand];
+  return fileName ? `LOGOS/${fileName}` : '';
+}
+
+function getCategoryLogoPath(category) {
+  const fileName = CATEGORY_LOGO_FILES[category];
   return fileName ? `LOGOS/${fileName}` : '';
 }
 
@@ -307,6 +329,37 @@ function decorateBrandButtons() {
 
     const label = document.createElement('span');
     label.className = 'brand-chip__label';
+    label.textContent = labelText;
+
+    button.append(logo, label);
+  });
+}
+
+function decorateCategoryButtons() {
+  categoryButtons.forEach((button) => {
+    const category = String(button.dataset.filter || '').toUpperCase();
+    if (!category) return;
+    if (button.querySelector('.category-chip__logo')) return;
+
+    const labelText = button.textContent.trim();
+    const logoPath = getCategoryLogoPath(category);
+    if (!logoPath) return;
+
+    button.classList.add('category-chip--with-logo');
+    button.textContent = '';
+
+    const logo = document.createElement('img');
+    logo.className = 'category-chip__logo';
+    logo.alt = '';
+    logo.loading = 'lazy';
+    logo.decoding = 'async';
+    logo.src = logoPath;
+    logo.addEventListener('error', () => {
+      logo.style.display = 'none';
+    }, { once: true });
+
+    const label = document.createElement('span');
+    label.className = 'category-chip__label';
     label.textContent = labelText;
 
     button.append(logo, label);
@@ -433,6 +486,85 @@ function getProductIcon(category) {
   return '🛍️';
 }
 
+function escapeXml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&apos;');
+}
+
+function hashString(value) {
+  let hash = 0;
+  const text = String(value || '');
+  for (let index = 0; index < text.length; index += 1) {
+    hash = ((hash << 5) - hash + text.charCodeAt(index)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+function getImagePalette(seed) {
+  const palettes = [
+    ['#10243a', '#1b7db6', '#35d0ba'],
+    ['#0f1c2e', '#2a5da8', '#59c2ff'],
+    ['#1b1d3a', '#2d3db2', '#4fd1ff'],
+    ['#16222f', '#1d8f9f', '#8be66f'],
+    ['#271a33', '#8654d8', '#4ed6ff'],
+    ['#2b1a1a', '#c24f4f', '#ffca5f'],
+  ];
+  return palettes[seed % palettes.length];
+}
+
+function buildGeneratedProductImage(product) {
+  const name = String(product?.displayName || product?.fullName || product?.name || 'Producto').trim();
+  const reference = getProductDisplayId(product);
+  const line1 = name.length > 34 ? `${name.slice(0, 31).trim()}...` : name;
+  const line2 = reference && reference !== 'SIN-ID'
+    ? `REF: ${reference}`
+    : `REF: ${(product?.brand || product?.category || 'EQUIPO').toString().toUpperCase()}`;
+
+  const seedKey = `${product?.id || ''}|${name}|${product?.brand || ''}|${product?.category || ''}`;
+  const seed = hashString(seedKey);
+  const cacheKey = `${seed}|${line1}|${line2}`;
+  const cached = GENERATED_IMAGE_CACHE.get(cacheKey);
+  if (cached) return cached;
+
+  const [startColor, endColor, accentColor] = getImagePalette(seed);
+  const icon = escapeXml(product?.icon || getProductIcon(product?.category));
+  const categoryText = escapeXml((product?.category || 'Producto').toString().toUpperCase());
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="720" viewBox="0 0 960 720" role="img" aria-label="${escapeXml(line1)}">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${startColor}"/>
+      <stop offset="100%" stop-color="${endColor}"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.8" cy="0.2" r="0.6">
+      <stop offset="0%" stop-color="${accentColor}" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="${accentColor}" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="960" height="720" fill="url(#bg)"/>
+  <rect width="960" height="720" fill="url(#glow)"/>
+  <rect x="48" y="48" width="864" height="624" rx="36" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+  <text x="78" y="158" fill="rgba(255,255,255,0.9)" font-size="78" font-family="Segoe UI Emoji, Apple Color Emoji, Noto Color Emoji">${icon}</text>
+  <text x="78" y="244" fill="rgba(255,255,255,0.78)" font-size="28" font-family="Arial, Helvetica, sans-serif" letter-spacing="2">${categoryText}</text>
+  <text x="78" y="560" fill="#ffffff" font-size="40" font-family="Arial, Helvetica, sans-serif" font-weight="700">${escapeXml(line1)}</text>
+  <text x="78" y="612" fill="rgba(255,255,255,0.82)" font-size="26" font-family="Arial, Helvetica, sans-serif">${escapeXml(line2)}</text>
+</svg>`;
+
+  const encoded = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  GENERATED_IMAGE_CACHE.set(cacheKey, encoded);
+  return encoded;
+}
+
+function getProductImageSource(product) {
+  const image = String(product?.image || '').trim();
+  if (image) return image;
+  return buildGeneratedProductImage(product);
+}
+
 function compactSpecs(specs) {
   return Object.fromEntries(
     Object.entries(specs).filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== ''),
@@ -514,8 +646,9 @@ function readFileAsDataUrl(file) {
 }
 
 function getProductVisual(product) {
-  if (product.image) {
-    return `<img class="product-card__img" src="${escapeHtml(product.image)}" alt="${escapeHtml(product.name)}" />`;
+  const imageSource = getProductImageSource(product);
+  if (imageSource) {
+    return `<img class="product-card__img" src="${escapeHtml(imageSource)}" alt="${escapeHtml(product.name)}" />`;
   }
 
   return `<span>${escapeHtml(product.icon || '🛍️')}</span>`;
@@ -583,8 +716,9 @@ function openDetailModal(product) {
   const actions = modal.querySelector('#detailModalActions');
   const rows = getSpecsRows(product);
 
-  media.innerHTML = product.image
-    ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.fullName || product.name)}" />`
+  const imageSource = getProductImageSource(product);
+  media.innerHTML = imageSource
+    ? `<img src="${escapeHtml(imageSource)}" alt="${escapeHtml(product.fullName || product.name)}" />`
     : `<span>${escapeHtml(product.icon || '🛍️')}</span>`;
 
   meta.innerHTML = `
@@ -621,7 +755,37 @@ function closeDetailModal() {
 }
 
 function normalizeNumber(text) {
-  return Number(String(text).replace(/[^0-9,.-]/g, '').replace(/\./g, '').replace(',', '.'));
+  const cleaned = String(text || '').replace(/[^0-9,.-]/g, '');
+  if (!cleaned) return NaN;
+
+  const hasComma = cleaned.includes(',');
+  const hasDot = cleaned.includes('.');
+
+  if (hasComma && hasDot) {
+    const lastComma = cleaned.lastIndexOf(',');
+    const lastDot = cleaned.lastIndexOf('.');
+    const decimalSep = lastComma > lastDot ? ',' : '.';
+    const thousandsSep = decimalSep === ',' ? '.' : ',';
+    const normalized = cleaned
+      .split(thousandsSep).join('')
+      .replace(decimalSep, '.');
+    return Number(normalized);
+  }
+
+  if (hasComma || hasDot) {
+    const sep = hasComma ? ',' : '.';
+    const parts = cleaned.split(sep);
+    const lastPart = parts[parts.length - 1] || '';
+
+    // If last part has 1-2 digits, assume decimal separator; otherwise treat as thousands separator.
+    if (parts.length > 1 && /^[0-9]{1,2}$/.test(lastPart)) {
+      return Number(`${parts.slice(0, -1).join('')}.${lastPart}`);
+    }
+
+    return Number(parts.join(''));
+  }
+
+  return Number(cleaned);
 }
 
 function compactTitle(rawName) {
@@ -692,6 +856,7 @@ function detectBrand(rawName) {
     'REDMI',
     'MICROSOFT',
     'GIGABYTE',
+    'JBL',
     'ALIENWARE',
     'LG',
     'APPLE',
@@ -703,8 +868,33 @@ function detectBrand(rawName) {
 
 function normalizeBrandKey(brandValue) {
   const normalized = String(brandValue || '').trim().toUpperCase();
+  if (!normalized) return '';
   if (normalized === 'REDMI') return 'XIAOMI';
+
+  const brandAliases = {
+    JBL: ['JBL', 'HARMAN'],
+    HP: ['HP', 'HEWLETT PACKARD'],
+    LENOVO: ['LENOVO', 'THINKPAD'],
+    ASUS: ['ASUS', 'ROG'],
+  };
+
+  for (const [canonical, aliases] of Object.entries(brandAliases)) {
+    if (aliases.some((alias) => normalized.includes(alias))) {
+      return canonical;
+    }
+  }
+
   return normalized;
+}
+
+function getProductBrandKey(product) {
+  const explicit = normalizeBrandKey(product?.brand);
+  if (explicit && explicit !== 'OTRAS') return explicit;
+
+  const inferred = normalizeBrandKey(detectBrand(String(product?.fullName || product?.name || '')));
+  if (inferred && inferred !== 'OTRAS') return inferred;
+
+  return explicit || inferred;
 }
 
 function parseSpecs(rawName) {
@@ -854,31 +1044,67 @@ function extractDisplayName(rawName, category = '') {
     .trim();
 }
 
-function parseSupplierLine(line, batchMeta = null) {
+function stripLeadingSupplierCode(rawName) {
+  return String(rawName || '').replace(/^\s*\d[\d-]*\s+/, '').trim();
+}
+
+function extractSupplierPrice(trimmedLine) {
+  const line = String(trimmedLine || '').trim();
+  if (!line) return null;
+
+  // Accept both formats: "... $975,00" and "... 706.00 |"
+  const match = line.match(/(?:\$\s*)?([0-9][0-9.,]*)\s*(?:\|\s*)?$/);
+  if (!match) return null;
+
+  const value = normalizeNumber(match[1]);
+  if (!Number.isFinite(value) || value <= 0) return null;
+
+  return {
+    value,
+    rawName: line.slice(0, match.index).trim(),
+  };
+}
+
+function sanitizePercent(value, fallback) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.min(500, Math.max(0, numeric));
+}
+
+function getBulkPricingConfig() {
+  return {
+    taxPercent: DEFAULT_BULK_TAX_PERCENT,
+    marginPercent: sanitizePercent(bulkMarginInput?.value, DEFAULT_BULK_MARGIN_PERCENT),
+  };
+}
+
+function parseSupplierLine(line, batchMeta = null, pricingConfig = null) {
   const trimmed = line.trim();
   if (!trimmed) return null;
 
-  const priceMatch = trimmed.match(/\$\s*([0-9.,]+)/);
-  if (!priceMatch) return null;
+  const extracted = extractSupplierPrice(trimmed);
+  if (!extracted) return null;
 
-  const rawPrice = normalizeNumber(priceMatch[1]);
-  if (!rawPrice || Number.isNaN(rawPrice)) return null;
+  const rawPrice = extracted.value;
+  const cleanedName = stripLeadingSupplierCode(extracted.rawName);
+  if (!cleanedName) return null;
 
-  const rawName = trimmed.slice(0, priceMatch.index).trim();
-  const category = detectCategory(rawName);
-  const brand = detectBrand(rawName);
+  const category = detectCategory(cleanedName);
+  const brand = detectBrand(cleanedName);
   const specs = {
-    ...parseSpecs(rawName),
-    ...(category === 'smartphone' || category === 'audio' ? parseMobileSpecs(rawName) : {}),
+    ...parseSpecs(cleanedName),
+    ...(category === 'smartphone' || category === 'audio' ? parseMobileSpecs(cleanedName) : {}),
   };
-  const displayName = extractDisplayName(rawName, category);
-  const costWithTax = rawPrice * 1.10;
-  const salePrice = costWithTax * 1.17;
+  const displayName = extractDisplayName(cleanedName, category);
+  const taxPercent = sanitizePercent(pricingConfig?.taxPercent, DEFAULT_BULK_TAX_PERCENT);
+  const marginPercent = sanitizePercent(pricingConfig?.marginPercent, DEFAULT_BULK_MARGIN_PERCENT);
+  const costWithTax = rawPrice * (1 + taxPercent / 100);
+  const salePrice = costWithTax * (1 + marginPercent / 100);
 
   return {
     id: `bulk-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    name: rawName,
-    fullName: rawName,
+    name: cleanedName,
+    fullName: cleanedName,
     displayName,
     specs,
     category,
@@ -887,8 +1113,9 @@ function parseSupplierLine(line, batchMeta = null) {
     price: Math.round(salePrice),
     oldPrice: Math.round(costWithTax),
     icon: getProductIcon(category),
-    sourceName: rawName,
+    sourceName: cleanedName,
     sourcePrice: rawPrice,
+    sourceMarginPercent: marginPercent,
     image: '',
     batchId: batchMeta?.id || `legacy-bulk-${Date.now()}`,
     batchLabel: batchMeta?.label || formatBatchLabel('Carga masiva', batchMeta?.createdAt || new Date().toISOString()),
@@ -896,11 +1123,11 @@ function parseSupplierLine(line, batchMeta = null) {
   };
 }
 
-function importSupplierList(text) {
+function importSupplierList(text, pricingConfig = null) {
   const batchMeta = createUploadBatchMeta('bulk');
   const parsedProducts = String(text)
     .split(/\r?\n/)
-    .map((line) => parseSupplierLine(line, batchMeta))
+    .map((line) => parseSupplierLine(line, batchMeta, pricingConfig))
     .filter(Boolean);
 
   if (!parsedProducts.length) {
@@ -957,7 +1184,7 @@ function clearUploadedProducts() {
 function getVisibleProducts() {
   const filteredProducts = products.filter((product) => {
     const matchesFilter = activeFilter === 'all' || product.category === activeFilter;
-    const matchesBrand = activeBrand === 'all' || normalizeBrandKey(product.brand) === normalizeBrandKey(activeBrand);
+    const matchesBrand = activeBrand === 'all' || getProductBrandKey(product) === normalizeBrandKey(activeBrand);
     const searchValue = searchTerm.toLowerCase();
     const matchesSearch = product.name.toLowerCase().includes(searchValue)
       || String(product.displayName || '').toLowerCase().includes(searchValue)
@@ -1278,6 +1505,7 @@ function setActiveBrand(brand) {
 }
 
 decorateBrandButtons();
+decorateCategoryButtons();
 
 categoryButtons.forEach((button) => {
   button.addEventListener('click', () => setActiveFilter(button.dataset.filter));
@@ -1454,7 +1682,7 @@ if (hasAdminControls()) {
 
   bulkForm.addEventListener('submit', (event) => {
     event.preventDefault();
-    importSupplierList(bulkInput.value);
+    importSupplierList(bulkInput.value, getBulkPricingConfig());
   });
 
   clearUploads.addEventListener('click', clearUploadedProducts);

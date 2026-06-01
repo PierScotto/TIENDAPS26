@@ -173,6 +173,11 @@
               <textarea id="bulkInput" rows="14" placeholder="NB ACER ASPIRE 14 ... $975,00"></textarea>
             </label>
 
+            <label class="bulk-label bulk-label--inline" for="bulkMarginPercent">
+              <span>Margen de ganancia (%)</span>
+              <input id="bulkMarginPercent" type="number" min="0" max="300" step="0.1" value="17" />
+            </label>
+
             <div class="upload-card__actions">
               <button class="btn btn--primary" type="submit">Importar listado</button>
               <button class="btn btn--ghost" type="button" id="fillSampleBulk">Cargar ejemplo</button>
@@ -188,7 +193,7 @@
             <ul class="formula-list">
               <li>1. Toma el precio del mayorista sin IVA.</li>
               <li>2. Suma 10% para costo ajustado.</li>
-              <li>3. Suma 17% sobre ese valor para tu precio final.</li>
+              <li>3. Suma el margen que definas en la carga masiva (por defecto 17%).</li>
               <li>4. Convierte <strong>NB</strong> en categoría Notebook y <strong>TAB</strong> en Tablet/2 en 1 si aparece.</li>
               <li>5. Genera un título corto para la vitrina, manteniendo el detalle completo en el dato original.</li>
             </ul>
@@ -250,6 +255,7 @@
               <button class="category-chip" data-brand="APPLE">Apple</button>
               <button class="category-chip" data-brand="MICROSOFT">Microsoft</button>
               <button class="category-chip" data-brand="GIGABYTE">Gigabyte</button>
+              <button class="category-chip" data-brand="JBL">JBL</button>
             </div>
           </div>
         </div>
@@ -280,6 +286,10 @@
         <div class="product-grid" id="productGrid"></div>
       </section>
     </main>
+
+    <a class="help-fab" href="https://wa.me/595982213504?text=Hola%2C%20%C2%BFme%20pueden%20ayudar%3F" target="_blank" rel="noopener noreferrer" aria-label="Contactar por WhatsApp">
+      ¿Necesitás ayuda?
+    </a>
 
     <div class="overlay" id="overlay"></div>
     <script src="app.js?v=20260524-5" defer></script>
