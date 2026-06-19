@@ -54,6 +54,9 @@ let editingProductId = '';
 let products = loadProducts();
 let selectedBatchSize = 60;
 let currentVisibleLimit = 60;
+const MOBILE_BREAKPOINT = 840;
+const MOBILE_DEFAULT_BATCH_SIZE = 20;
+const DESKTOP_DEFAULT_BATCH_SIZE = 60;
 
 const DEFAULT_BULK_TAX_PERCENT = 10;
 const DEFAULT_BULK_MARGIN_PERCENT = 17;
@@ -61,6 +64,29 @@ const GENERATED_IMAGE_CACHE = new Map();
 
 function resetVisibleLimit() {
   currentVisibleLimit = selectedBatchSize;
+}
+
+function initializeResponsiveBatchSize() {
+  if (!batchSizeSelect) return;
+
+  const isMobileViewport = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches;
+  const currentSelectValue = Number(batchSizeSelect.value) || DESKTOP_DEFAULT_BATCH_SIZE;
+
+  if (isMobileViewport && currentSelectValue === DESKTOP_DEFAULT_BATCH_SIZE) {
+    const hasMobileOption = [...batchSizeSelect.options].some(
+      (option) => Number(option.value) === MOBILE_DEFAULT_BATCH_SIZE,
+    );
+
+    if (hasMobileOption) {
+      batchSizeSelect.value = String(MOBILE_DEFAULT_BATCH_SIZE);
+      selectedBatchSize = MOBILE_DEFAULT_BATCH_SIZE;
+      currentVisibleLimit = MOBILE_DEFAULT_BATCH_SIZE;
+      return;
+    }
+  }
+
+  selectedBatchSize = currentSelectValue;
+  currentVisibleLimit = currentSelectValue;
 }
 
 function updateBatchControls(totalProducts, renderedCount) {
@@ -1588,8 +1614,7 @@ if (sortSelect) {
 }
 
 if (batchSizeSelect) {
-  selectedBatchSize = Number(batchSizeSelect.value) || 60;
-  currentVisibleLimit = selectedBatchSize;
+  initializeResponsiveBatchSize();
 
   batchSizeSelect.addEventListener('change', (event) => {
     selectedBatchSize = Number(event.target.value) || 60;
