@@ -44,12 +44,11 @@
     <header class="topbar">
       <div class="container topbar__inner">
         <p>Envíos rápidos y Soporte especializado.</p>
-        <p>Todos nuestros productos cuentan con garantía oficial para que compres con total confianza.</p>
+        <p>Todos nuestros productos cuentan con garantía para que compres con total confianza.</p>
         <div class="topbar__actions">
           <a href="#ofertas">Inicio de la Página</a>
           <a href="#categorias">Categorías</a>
           <a href="#contacto">Contacto</a>
-          <a class="topbar__admin-link" href="admin.html">⚙ Admin</a>
           <button class="cart-button cart-button--topbar" id="openCart" type="button">
             <span>Carrito</span>
             <strong id="cartCount">0</strong>
@@ -62,11 +61,11 @@
       <div class="container navbar__inner">
         <a class="brand" href="#inicio">
           <span class="brand__mark brand__mark--logo">
-            <img src="LOGOS/PACTO%20STORE.png" alt="Pacto Store" loading="eager" decoding="async" />
+            <img src="LOGOS/pacto3.png" alt="Pacto Store" loading="eager" decoding="async" />
           </span>
           <span class="brand__text">
             <strong>Pacto Store</strong>
-            <small>Electrónica Empresarial</small>
+            <small>Tienda de Electrónica</small>
           </span>
         </a>
 
@@ -85,13 +84,15 @@
     <main id="inicio">
       <section class="hero container">
         <div class="hero__content hero__content--center reveal">
-          <img src="LOGOS/PACTO%20STORE.png" alt="Pacto Store" loading="eager" decoding="async" class="hero__logo" />
-          <h1>Tecnología que simplifica tu día.</h1>
-          <p>Tecnología premium para empresas y hogares. Equipos seleccionados, diseño impecable y una experiencia de compra simple, rápida y confiable.</p>
+          <img src="LOGOS/pacto3.png" alt="Pacto Store" loading="eager" decoding="async" class="hero__logo" />
+          <p>En Pacto Store reunimos tecnología moderna y confiable para empresas y hogares, 
+            con envíos a todo el país y un servicio de entrega rápido, seguro y pensado para que
+             recibas tus productos con total tranquilidad.</p>
 
           <div class="hero__cta">
-            <a class="btn btn--primary" href="#destacados">Ver productos</a>
-            <a class="btn btn--ghost" href="#ofertas">Explorar ofertas</a>
+            <a class="btn btn--primary btn--cta-whatsapp" href="https://wa.me/595982213504?text=Hola%2C%20estoy%20interesado%20y%20tengo%20algunas%20dudas.%20%C2%BFMe%20pueden%20asesorar%3F" target="_blank" rel="noopener noreferrer" aria-label="Contactar por WhatsApp">
+              <img src="LOGOS/CCC.png" alt="Contactanos por WhatsApp" class="btn--cta-whatsapp__img" loading="eager" decoding="async" />
+            </a>
           </div>
 
           <div class="hero__stats">
@@ -115,7 +116,7 @@
         <div class="hero__visual reveal">
           <section class="hero-card hero-card--side" id="contacto">
             <div class="upload-card__header">
-              <span class="eyebrow">Contacto empresarial</span>
+              <span class="eyebrow">Contacto Empresarial</span>
               <h3>Contanos qué necesita tu empresa</h3>
               <p>Te respondemos por WhatsApp o correo con una propuesta a medida.</p>
             </div>
@@ -158,112 +159,32 @@
       <section class="container section" id="ofertas">
         <div class="promo-banner reveal">
           <div class="promo-banner__lead">
-            <span class="eyebrow">Selección destacada</span>
-            <h2>Lo mejor de la tecnología, cuidadosamente elegido para vos.</h2>
+            <span class="eyebrow">Promociones exclusivas</span>
+            <h2>Descubrí ofertas especiales en notebooks, PCs, TVs y smartphones con precios competitivos y tecnología de última generación.</h2>
           </div>
 
           <div class="promo-banner__cards">
             <article>
-              <h3>Rendimiento real</h3>
-              <p>Equipos potentes para trabajar, estudiar y crear con fluidez.</p>
+              <h3>Productos Destacados</h3>
+              <p>Equipos seleccionados con el mejor equilibrio entre rendimiento, diseño y calidad para trabajo, estudio y entretenimiento.</p>
             </article>
             <article>
-              <h3>Diseño premium</h3>
-              <p>Productos elegantes, minimalistas y listos para durar.</p>
+              <h3>Tecnología Premium</h3>
+              <p>Una experiencia visual moderna y profesional, enfocada en mostrar dispositivos innovadores con una estética limpia y comercial.</p>
             </article>
             <article>
-              <h3>Marcas líderes</h3>
-              <p>Trabajamos con fabricantes globales de confianza y garantía oficial.</p>
+              <h3>Las mejores marcas</h3>
+              <p>Encontrá notebooks, computadoras, televisores y celulares de marcas reconocidas con garantía y alto rendimiento.</p>
             </article>
             <article>
-              <h3>Ofertas curadas</h3>
-              <p>Precios competitivos en productos realmente relevantes.</p>
+              <h3>Ofertas por tiempo limitado</h3>
+              <p>Aprovechá descuentos especiales y campañas exclusivas en productos tecnológicos destacados.</p>
             </article>
             <article class="promo-banner__cards--wide">
-              <h3>Una tienda, toda tu tecnología</h3>
-              <p>Desde notebooks y PCs hasta TVs y smartphones, todo en un mismo ecosistema de compra.</p>
+              <h3>Todo en tecnología en un solo lugar</h3>
+              <p>Desde PCs gamer hasta Smart TVs y smartphones de última generación, explorá un catálogo pensado para cada necesidad.</p>
             </article>
           </div>
-        </div>
-      </section>
-
-      <section class="container section" id="destacados">
-        <div class="section__heading section__heading--split reveal">
-          <div>
-            <span class="eyebrow">Vitrina dinámica</span>
-            <h2>Productos destacados</h2>
-          </div>
-          <div class="catalog-controls">
-            <label class="search-box">
-              <span>Buscar</span>
-              <input id="searchInput" type="search" placeholder="PC, notebook, TV, smartphone..." />
-            </label>
-            <label class="search-box search-box--select">
-              <span>Ordenar</span>
-              <select id="sortSelect">
-                <option value="default">Destacados</option>
-                <option value="price-asc">Precio: menor a mayor</option>
-                <option value="price-desc">Precio: mayor a menor</option>
-                <option value="name-asc">Nombre: A-Z</option>
-                <option value="name-desc">Nombre: Z-A</option>
-              </select>
-            </label>
-            <button class="btn btn--ghost catalog-controls__pdf" id="exportProductsPdf" type="button">Generar PDF</button>
-          </div>
-        </div>
-
-        <div class="filters-panel reveal">
-          <div class="filters-panel__group">
-            <span class="eyebrow">Categorías</span>
-            <div class="category-grid">
-              <button class="category-chip is-active" data-filter="all">Todo</button>
-              <button class="category-chip" data-filter="pc">PC</button>
-              <button class="category-chip" data-filter="notebook">Notebook</button>
-              <button class="category-chip" data-filter="tv">TV</button>
-              <button class="category-chip" data-filter="smartphone">Smartphone</button>
-              <button class="category-chip" data-filter="gaming">Gaming</button>
-              <button class="category-chip" data-filter="audio">Audio</button>
-            </div>
-          </div>
-
-          <div class="filters-panel__group filters-panel__group--brands">
-            <span class="eyebrow">Marcas</span>
-            <div class="brand-grid">
-              <button class="category-chip is-active" data-brand="all">Todas las Marcas</button>
-              <button class="category-chip" data-brand="MSI">MSI</button>
-              <button class="category-chip" data-brand="DELL">Dell</button>
-              <button class="category-chip" data-brand="ACER">Acer</button>
-              <button class="category-chip" data-brand="ASUS">ASUS</button>
-              <button class="category-chip" data-brand="HP">HP</button>
-              <button class="category-chip" data-brand="LENOVO">Lenovo</button>
-              <button class="category-chip" data-brand="SAMSUNG">Samsung</button>
-              <button class="category-chip" data-brand="XIAOMI">Xiaomi</button>
-              <button class="category-chip" data-brand="APPLE">Apple</button>
-              <button class="category-chip" data-brand="MICROSOFT">Microsoft</button>
-              <button class="category-chip" data-brand="GIGABYTE">Gigabyte</button>
-              <button class="category-chip" data-brand="JBL">JBL</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="product-grid" id="productGrid"></div>
-      </section>
-
-      <section class="container section section--split">
-        <div class="feature-card reveal">
-          <span class="eyebrow">Asesoría tecnológica</span>
-          <h3>Equipamos empresas con soluciones reales</h3>
-          <p>Te ayudamos a elegir notebooks, PCs y accesorios que mejoran productividad, seguridad y continuidad operativa.</p>
-        </div>
-        <div class="feature-card reveal">
-          <span class="eyebrow">Atención corporativa</span>
-          <h3>Compras por volumen para cada equipo</h3>
-          <p>Armamos propuestas a medida para oficinas, pymes y áreas IT con opciones de renovación y crecimiento escalable.</p>
-        </div>
-        <div class="feature-card reveal">
-          <span class="eyebrow">Compromiso PACTO STORE</span>
-          <h3>Tecnología confiable para crecer</h3>
-          <p>Nos enfocamos en ofrecer productos de marcas líderes para impulsar la transformación digital de tu empresa.</p>
         </div>
       </section>
 
@@ -322,6 +243,105 @@
             <span>JBL</span>
           </article>
         </div>
+      </section>
+
+      <section class="container section" id="destacados">
+        <div class="section__heading section__heading--split reveal">
+          <div>
+            <span class="eyebrow">Vitrina dinámica</span>
+            <h2>Productos Destacados</h2>
+          </div>
+          <div class="catalog-controls">
+            <label class="search-box">
+              <span>Buscar</span>
+              <input id="searchInput" type="search" placeholder="PC, notebook, TV, smartphone..." />
+            </label>
+            <label class="search-box search-box--select">
+              <span>Ordenar</span>
+              <select id="sortSelect">
+                <option value="default">Destacados</option>
+                <option value="price-asc">Precio: menor a mayor</option>
+                <option value="price-desc">Precio: mayor a menor</option>
+                <option value="name-asc">Nombre: A-Z</option>
+                <option value="name-desc">Nombre: Z-A</option>
+              </select>
+            </label>
+            <button class="btn btn--ghost catalog-controls__pdf" id="exportProductsPdf" type="button">Generar PDF</button>
+          </div>
+        </div>
+
+        <div class="filters-panel reveal">
+          <div class="filters-panel__group">
+            <span class="eyebrow">Categorías de Productos</span>
+            <div class="category-grid">
+              <button class="category-chip is-active" data-filter="all">Todo</button>
+              <button class="category-chip" data-filter="pc">PC</button>
+              <button class="category-chip" data-filter="notebook">Notebook</button>
+              <button class="category-chip" data-filter="tv">TV</button>
+              <button class="category-chip" data-filter="smartphone">Smartphone</button>
+              <button class="category-chip" data-filter="gaming">Gaming</button>
+              <button class="category-chip" data-filter="audio">Audio</button>
+            </div>
+          </div>
+
+          <div class="filters-panel__group filters-panel__group--brands">
+            <span class="eyebrow">Filtrar por Marcas</span>
+            <div class="brand-grid">
+              <button class="category-chip is-active" data-brand="all">Todas las Marcas</button>
+              <button class="category-chip" data-brand="MSI">MSI</button>
+              <button class="category-chip" data-brand="DELL">Dell</button>
+              <button class="category-chip" data-brand="ACER">Acer</button>
+              <button class="category-chip" data-brand="ASUS">ASUS</button>
+              <button class="category-chip" data-brand="HP">HP</button>
+              <button class="category-chip" data-brand="LENOVO">Lenovo</button>
+              <button class="category-chip" data-brand="SAMSUNG">Samsung</button>
+              <button class="category-chip" data-brand="XIAOMI">Xiaomi</button>
+              <button class="category-chip" data-brand="APPLE">Apple</button>
+              <button class="category-chip" data-brand="MICROSOFT">Microsoft</button>
+              <button class="category-chip" data-brand="GIGABYTE">Gigabyte</button>
+              <button class="category-chip" data-brand="JBL">JBL</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="catalog-batch-controls reveal" id="catalogBatchControls" aria-label="Control de tandas">
+          <label class="search-box search-box--select catalog-batch-controls__select">
+            <span>Cantidad de productos visualizados</span>
+            <select id="batchSizeSelect">
+              <option value="60" selected>60 Productos</option>
+              <option value="120">120 Productos</option>
+              <option value="240">240 Productos</option>
+            </select>
+          </label>
+          <button class="btn btn--ghost catalog-batch-controls__more" id="loadMoreProducts" type="button" aria-label="Ver más productos">
+            <span aria-hidden="true">↓</span>
+            <span>Quiero ver más</span>
+          </button>
+        </div>
+
+        <div class="product-grid" id="productGrid"></div>
+      </section>
+
+      <section class="container section section--split">
+        <div class="feature-card reveal">
+          <span class="eyebrow">Asesoría tecnológica</span>
+          <h3>Equipamos empresas con soluciones reales</h3>
+          <p>Te ayudamos a elegir notebooks, PCs y accesorios que mejoran productividad, seguridad y continuidad operativa.</p>
+        </div>
+        <div class="feature-card reveal">
+          <span class="eyebrow">Atención corporativa</span>
+          <h3>Compras por volumen para cada equipo</h3>
+          <p>Armamos propuestas a medida para oficinas, pymes y áreas IT con opciones de renovación y crecimiento escalable.</p>
+        </div>
+        <div class="feature-card reveal">
+          <span class="eyebrow">Compromiso PACTO STORE</span>
+          <h3>Tecnología confiable para crecer</h3>
+          <p>Nos enfocamos en ofrecer productos de marcas líderes para impulsar la transformación digital de tu empresa.</p>
+        </div>
+      </section>
+
+      <section class="container stealth-admin-access" aria-label="Acceso administrativo">
+        <a href="admin.html" class="stealth-admin-access__link" rel="nofollow">00</a>
       </section>
 
     </main>

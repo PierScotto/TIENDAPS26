@@ -9,6 +9,9 @@ const WHATSAPP_SALES_NUMBER = '+595982213504';
 const productGrid = document.getElementById('productGrid');
 const searchInput = document.getElementById('searchInput');
 const sortSelect = document.getElementById('sortSelect');
+const batchSizeSelect = document.getElementById('batchSizeSelect');
+const loadMoreProducts = document.getElementById('loadMoreProducts');
+const shouldUseBatchControls = Boolean(batchSizeSelect && loadMoreProducts);
 const uploadBatchSelect = document.getElementById('uploadBatchSelect');
 const categoryButtons = [...document.querySelectorAll('[data-filter]')];
 const brandButtons = [...document.querySelectorAll('[data-brand]')];
@@ -40,18 +43,47 @@ const submitProductButton = document.querySelector('[data-submit-product]');
 const businessContactForm = document.getElementById('businessContactForm');
 
 const CONTACT_EMAIL = 'pierscotto3@gmail.com';
+const isAdminView = hasAdminControls();
 
 const cart = [];
-let activeFilter = 'all';
+let activeFilter = isAdminView ? 'all' : 'notebook';
 let activeBrand = 'all';
 let searchTerm = '';
-let activeSort = 'default';
+let activeSort = isAdminView ? 'default' : 'price-asc';
 let editingProductId = '';
 let products = loadProducts();
+let selectedBatchSize = 60;
+let currentVisibleLimit = 60;
 
 const DEFAULT_BULK_TAX_PERCENT = 10;
 const DEFAULT_BULK_MARGIN_PERCENT = 17;
 const GENERATED_IMAGE_CACHE = new Map();
+
+function resetVisibleLimit() {
+  currentVisibleLimit = selectedBatchSize;
+}
+
+function updateBatchControls(totalProducts, renderedCount) {
+  if (!loadMoreProducts) return;
+
+  const hasMore = renderedCount < totalProducts;
+  loadMoreProducts.hidden = !hasMore;
+  loadMoreProducts.disabled = !hasMore;
+
+  if (!hasMore) return;
+
+  const remaining = totalProducts - renderedCount;
+  const arrow = loadMoreProducts.querySelector('[aria-hidden="true"]');
+  const label = loadMoreProducts.querySelector('span:not([aria-hidden])');
+
+  if (arrow) {
+    arrow.textContent = '↓';
+  }
+
+  if (label) {
+    label.textContent = `Quiero ver más (${remaining} restantes)`;
+  }
+}
 
 function formatPrice(value) {
   return `U$ ${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
@@ -1160,6 +1192,7 @@ function clearUploadedProducts() {
   activeBrand = 'all';
   searchTerm = '';
   activeSort = 'default';
+  resetVisibleLimit();
 
   categoryButtons.forEach((button) => {
     button.classList.toggle('is-active', button.dataset.filter === 'all');
@@ -1331,7 +1364,10 @@ function renderSpecsBlock(product) {
 
 function renderProducts() {
   if (!productGrid) return;
-  const visibleProducts = getVisibleProducts();
+  const allVisibleProducts = getVisibleProducts();
+  const visibleProducts = shouldUseBatchControls
+    ? allVisibleProducts.slice(0, currentVisibleLimit)
+    : allVisibleProducts;
   const adminMode = hasAdminControls();
 
   productGrid.innerHTML = visibleProducts
@@ -1380,6 +1416,9 @@ function renderProducts() {
     button.addEventListener('click', () => addToCart(button.dataset.add));
   });
 
+  if (shouldUseBatchControls) {
+    updateBatchControls(allVisibleProducts.length, visibleProducts.length);
+  }
   renderUploadBatchSelect();
 }
 
@@ -1490,6 +1529,7 @@ function checkoutViaWhatsApp() {
 
 function setActiveFilter(filter) {
   activeFilter = filter;
+  resetVisibleLimit();
   categoryButtons.forEach((button) => {
     button.classList.toggle('is-active', button.dataset.filter === filter);
   });
@@ -1498,14 +1538,30 @@ function setActiveFilter(filter) {
 
 function setActiveBrand(brand) {
   activeBrand = brand;
+  resetVisibleLimit();
   brandButtons.forEach((button) => {
     button.classList.toggle('is-active', button.dataset.brand === brand);
   });
   renderProducts();
 }
 
+function syncCatalogControls() {
+  categoryButtons.forEach((button) => {
+    button.classList.toggle('is-active', button.dataset.filter === activeFilter);
+  });
+
+  brandButtons.forEach((button) => {
+    button.classList.toggle('is-active', button.dataset.brand === activeBrand);
+  });
+
+  if (sortSelect) {
+    sortSelect.value = activeSort;
+  }
+}
+
 decorateBrandButtons();
 decorateCategoryButtons();
+syncCatalogControls();
 
 categoryButtons.forEach((button) => {
   button.addEventListener('click', () => setActiveFilter(button.dataset.filter));
@@ -1518,6 +1574,7 @@ brandButtons.forEach((button) => {
 if (searchInput) {
   searchInput.addEventListener('input', (event) => {
     searchTerm = event.target.value;
+    resetVisibleLimit();
     renderProducts();
   });
 }
@@ -1525,6 +1582,25 @@ if (searchInput) {
 if (sortSelect) {
   sortSelect.addEventListener('change', (event) => {
     activeSort = event.target.value;
+    resetVisibleLimit();
+    renderProducts();
+  });
+}
+
+if (batchSizeSelect) {
+  selectedBatchSize = Number(batchSizeSelect.value) || 60;
+  currentVisibleLimit = selectedBatchSize;
+
+  batchSizeSelect.addEventListener('change', (event) => {
+    selectedBatchSize = Number(event.target.value) || 60;
+    resetVisibleLimit();
+    renderProducts();
+  });
+}
+
+if (loadMoreProducts) {
+  loadMoreProducts.addEventListener('click', () => {
+    currentVisibleLimit += selectedBatchSize;
     renderProducts();
   });
 }
