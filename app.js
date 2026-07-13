@@ -1,6 +1,8 @@
 const baseProducts = [];
 
 const STORAGE_KEY = 'novatech-custom-products';
+const CART_STORAGE_KEY = 'pacto-store-cart';
+const FAVORITES_STORAGE_KEY = 'pacto-store-favorites';
 const API_BASE_URL = String(window.NOVATECH_API_BASE_URL || '').replace(/\/$/, '');
 const PRODUCTS_API_PATH = '/api/products';
 const LEADS_API_PATH = '/api/leads';
@@ -9,12 +11,18 @@ const WHATSAPP_SALES_NUMBER = '+595982213504';
 const productGrid = document.getElementById('productGrid');
 const searchInput = document.getElementById('searchInput');
 const sortSelect = document.getElementById('sortSelect');
+const maxPriceInput = document.getElementById('maxPriceInput');
+const favoritesToggle = document.getElementById('favoritesToggle');
+const favoritesCount = document.getElementById('favoritesCount');
+const catalogResults = document.getElementById('catalogResults');
+const storeToast = document.getElementById('storeToast');
 const batchSizeSelect = document.getElementById('batchSizeSelect');
 const loadMoreProducts = document.getElementById('loadMoreProducts');
 const shouldUseBatchControls = Boolean(batchSizeSelect && loadMoreProducts);
 const uploadBatchSelect = document.getElementById('uploadBatchSelect');
 const categoryButtons = [...document.querySelectorAll('[data-filter]')];
 const brandButtons = [...document.querySelectorAll('[data-brand]')];
+const storeCategoryLinks = [...document.querySelectorAll('[data-store-category]')];
 const cartDrawer = document.getElementById('cartDrawer');
 const overlay = document.getElementById('overlay');
 const cartItems = document.getElementById('cartItems');
@@ -27,6 +35,7 @@ const openCart = document.getElementById('openCart');
 const closeCart = document.getElementById('closeCart');
 const menuToggle = document.getElementById('menuToggle');
 const navLinks = document.getElementById('navLinks');
+const themeToggle = document.getElementById('themeToggle');
 const productForm = document.getElementById('productForm');
 const resetProducts = document.getElementById('resetProducts');
 const bulkForm = document.getElementById('bulkForm');
@@ -45,11 +54,14 @@ const businessContactForm = document.getElementById('businessContactForm');
 const CONTACT_EMAIL = 'pierscotto3@gmail.com';
 const isAdminView = hasAdminControls();
 
-const cart = [];
+const cart = loadStoredArray(CART_STORAGE_KEY);
+const favorites = new Set(loadStoredArray(FAVORITES_STORAGE_KEY).map(String));
 let activeFilter = isAdminView ? 'all' : 'notebook';
 let activeBrand = 'all';
 let searchTerm = '';
 let activeSort = isAdminView ? 'default' : 'price-asc';
+let maxPrice = 0;
+let favoritesOnly = false;
 let editingProductId = '';
 let products = loadProducts();
 let selectedBatchSize = 60;
@@ -61,6 +73,52 @@ const DESKTOP_DEFAULT_BATCH_SIZE = 60;
 const DEFAULT_BULK_TAX_PERCENT = 10;
 const DEFAULT_BULK_MARGIN_PERCENT = 17;
 const GENERATED_IMAGE_CACHE = new Map();
+let toastTimer = 0;
+
+function loadStoredArray(key) {
+  if (!canUseStorage()) return [];
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || '[]');
+    return Array.isArray(value) ? value : [];
+  } catch (_error) {
+    return [];
+  }
+}
+
+function persistShoppingState() {
+  if (!canUseStorage()) return;
+  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+  localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify([...favorites]));
+}
+
+function applyStoreTheme(theme) {
+  if (!document.body.classList.contains('storefront')) return;
+  const isDark = theme === 'dark';
+  document.body.dataset.theme = isDark ? 'dark' : 'light';
+
+  if (themeToggle) {
+    themeToggle.setAttribute('aria-pressed', String(isDark));
+    themeToggle.setAttribute('aria-label', isDark ? 'Activar modo claro' : 'Activar modo oscuro');
+    const label = themeToggle.querySelector('.theme-toggle__label');
+    const icon = themeToggle.querySelector('.theme-toggle__icon');
+    if (label) label.textContent = isDark ? 'Claro' : 'Oscuro';
+    if (icon) icon.textContent = isDark ? '☀' : '◐';
+  }
+}
+
+function initializeStoreTheme() {
+  if (!document.body.classList.contains('storefront')) return;
+  const savedTheme = canUseStorage() ? localStorage.getItem('pacto-store-theme') : '';
+  applyStoreTheme(savedTheme === 'light' ? 'light' : 'dark');
+}
+
+function showToast(message) {
+  if (!storeToast) return;
+  storeToast.textContent = message;
+  storeToast.classList.add('is-visible');
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => storeToast.classList.remove('is-visible'), 2400);
+}
 
 function resetVisibleLimit() {
   currentVisibleLimit = selectedBatchSize;
@@ -1129,9 +1187,40 @@ function sanitizePercent(value, fallback) {
   return Math.min(500, Math.max(0, numeric));
 }
 
+function requestBulkTaxPercent() {
+  const shouldApplyTax = window.confirm(
+    '¿Querés aplicar IVA en esta carga masiva?\n\nAceptar = Sí\nCancelar = No',
+  );
+
+  if (!shouldApplyTax) {
+    return 0;
+  }
+
+  while (true) {
+    const response = window.prompt(
+      'Ingresá el porcentaje de IVA que querés aplicar (ejemplo: 10).',
+      String(DEFAULT_BULK_TAX_PERCENT),
+    );
+
+    if (response === null) {
+      return null;
+    }
+
+    const numeric = Number(String(response).trim().replace(',', '.'));
+    if (Number.isFinite(numeric) && numeric >= 0 && numeric <= 500) {
+      return numeric;
+    }
+
+    window.alert('Ingresá un porcentaje válido entre 0 y 500.');
+  }
+}
+
 function getBulkPricingConfig() {
+  const taxPercent = requestBulkTaxPercent();
+  if (taxPercent === null) return null;
+
   return {
-    taxPercent: DEFAULT_BULK_TAX_PERCENT,
+    taxPercent,
     marginPercent: sanitizePercent(bulkMarginInput?.value, DEFAULT_BULK_MARGIN_PERCENT),
   };
 }
@@ -1248,7 +1337,9 @@ function getVisibleProducts() {
     const matchesSearch = product.name.toLowerCase().includes(searchValue)
       || String(product.displayName || '').toLowerCase().includes(searchValue)
       || getProductIdentifier(product).toLowerCase().includes(searchValue);
-    return matchesFilter && matchesBrand && matchesSearch;
+    const matchesPrice = !maxPrice || Number(product.price) <= maxPrice;
+    const matchesFavorites = !favoritesOnly || favorites.has(String(product.id));
+    return matchesFilter && matchesBrand && matchesSearch && matchesPrice && matchesFavorites;
   });
 
   const sortedProducts = [...filteredProducts];
@@ -1396,11 +1487,18 @@ function renderProducts() {
     : allVisibleProducts;
   const adminMode = hasAdminControls();
 
+  if (catalogResults) {
+    catalogResults.textContent = `${allVisibleProducts.length} producto${allVisibleProducts.length === 1 ? '' : 's'} encontrado${allVisibleProducts.length === 1 ? '' : 's'}`;
+  }
+
   productGrid.innerHTML = visibleProducts
     .map(
       (product) => `
         <article class="product-card reveal">
-          <div class="product-card__image">${getProductVisual(product)}</div>
+          <div class="product-card__image">
+            ${!adminMode ? `<button class="product-card__favorite${favorites.has(String(product.id)) ? ' is-active' : ''}" data-favorite="${product.id}" type="button" aria-label="${favorites.has(String(product.id)) ? 'Quitar de favoritos' : 'Agregar a favoritos'}" aria-pressed="${favorites.has(String(product.id))}">${favorites.has(String(product.id)) ? '♥' : '♡'}</button>` : ''}
+            ${getProductVisual(product)}
+          </div>
           <div class="product-card__meta">
             ${product.tag && product.tag.toUpperCase() !== 'WHATSAPP' ? `<span title="${escapeHtml(product.tag)}">${escapeHtml(product.tag)}</span>` : ''}
             <span title="${escapeHtml(product.category.toUpperCase())}">${escapeHtml(product.category.toUpperCase())}</span>
@@ -1441,6 +1539,8 @@ function renderProducts() {
   [...document.querySelectorAll('[data-add]')].forEach((button) => {
     button.addEventListener('click', () => addToCart(button.dataset.add));
   });
+
+  if (favoritesCount) favoritesCount.textContent = String(favorites.size);
 
   if (shouldUseBatchControls) {
     updateBatchControls(allVisibleProducts.length, visibleProducts.length);
@@ -1484,6 +1584,8 @@ function renderCart() {
     checkoutCart.setAttribute('aria-disabled', String(count === 0));
   }
 
+  persistShoppingState();
+
 }
 
 function addToCart(productId) {
@@ -1498,7 +1600,22 @@ function addToCart(productId) {
   }
 
   renderCart();
+  showToast(`${product.displayName || product.name} se agregó al carrito.`);
   openDrawer();
+}
+
+function toggleFavorite(productId) {
+  const id = String(productId);
+  const product = products.find((item) => String(item.id) === id);
+  if (favorites.has(id)) {
+    favorites.delete(id);
+    showToast('Producto quitado de favoritos.');
+  } else {
+    favorites.add(id);
+    showToast(`${product?.displayName || product?.name || 'Producto'} guardado en favoritos.`);
+  }
+  persistShoppingState();
+  renderProducts();
 }
 
 function removeFromCart(productId) {
@@ -1605,6 +1722,24 @@ if (searchInput) {
   });
 }
 
+if (maxPriceInput) {
+  maxPriceInput.addEventListener('input', (event) => {
+    maxPrice = Math.max(0, Number(event.target.value) || 0);
+    resetVisibleLimit();
+    renderProducts();
+  });
+}
+
+if (favoritesToggle) {
+  favoritesToggle.addEventListener('click', () => {
+    favoritesOnly = !favoritesOnly;
+    favoritesToggle.classList.toggle('is-active', favoritesOnly);
+    favoritesToggle.setAttribute('aria-pressed', String(favoritesOnly));
+    resetVisibleLimit();
+    renderProducts();
+  });
+}
+
 if (sortSelect) {
   sortSelect.addEventListener('change', (event) => {
     activeSort = event.target.value;
@@ -1612,6 +1747,19 @@ if (sortSelect) {
     renderProducts();
   });
 }
+
+storeCategoryLinks.forEach((link) => {
+  link.addEventListener('click', () => {
+    const category = link.dataset.storeCategory;
+    if (!category) return;
+    activeFilter = category;
+    categoryButtons.forEach((button) => {
+      button.classList.toggle('is-active', button.dataset.filter === category);
+    });
+    resetVisibleLimit();
+    renderProducts();
+  });
+});
 
 if (batchSizeSelect) {
   initializeResponsiveBatchSize();
@@ -1668,7 +1816,32 @@ if (pdfExportButton) {
 
 if (menuToggle && navLinks) {
   menuToggle.addEventListener('click', () => {
-    navLinks.classList.toggle('is-open');
+    const isOpen = navLinks.classList.toggle('is-open');
+    menuToggle.setAttribute('aria-expanded', String(isOpen));
+    menuToggle.setAttribute('aria-label', isOpen ? 'Cerrar menú' : 'Abrir menú');
+  });
+
+  navLinks.addEventListener('click', (event) => {
+    if (!event.target.closest('a')) return;
+    navLinks.classList.remove('is-open');
+    menuToggle.setAttribute('aria-expanded', 'false');
+    menuToggle.setAttribute('aria-label', 'Abrir menú');
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !navLinks.classList.contains('is-open')) return;
+    navLinks.classList.remove('is-open');
+    menuToggle.setAttribute('aria-expanded', 'false');
+    menuToggle.setAttribute('aria-label', 'Abrir menú');
+    menuToggle.focus();
+  });
+}
+
+if (themeToggle) {
+  themeToggle.addEventListener('click', () => {
+    const nextTheme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+    applyStoreTheme(nextTheme);
+    if (canUseStorage()) localStorage.setItem('pacto-store-theme', nextTheme);
   });
 }
 
@@ -1720,6 +1893,12 @@ if (businessContactForm) {
 }
 
 document.addEventListener('click', (event) => {
+  const favoriteButton = event.target.closest('[data-favorite]');
+  if (favoriteButton) {
+    toggleFavorite(favoriteButton.dataset.favorite);
+    return;
+  }
+
   const cartControl = event.target.closest('[data-cart-action]');
   if (cartControl) {
     const productId = cartControl.dataset.cartId;
@@ -1783,7 +1962,11 @@ if (hasAdminControls()) {
 
   bulkForm.addEventListener('submit', (event) => {
     event.preventDefault();
-    importSupplierList(bulkInput.value, getBulkPricingConfig());
+
+    const pricingConfig = getBulkPricingConfig();
+    if (!pricingConfig) return;
+
+    importSupplierList(bulkInput.value, pricingConfig);
   });
 
   clearUploads.addEventListener('click', clearUploadedProducts);
@@ -1867,6 +2050,7 @@ if (hasAdminControls()) {
   });
 }
 
+initializeStoreTheme();
 renderProducts();
 renderCart();
 void hydrateProductsFromRemote();

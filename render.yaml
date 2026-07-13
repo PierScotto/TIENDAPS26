@@ -21,7 +21,7 @@ services:
         fromDatabase:
           name: novatech-db
           property: connectionString
-      - key: ADMIN_USERNAME
+      - key: ADMIN_PIER_SCOTTO
         sync: false
-      - key: ADMIN_PASSWORD
+      - key: yosoyPONGI2002
         sync: false

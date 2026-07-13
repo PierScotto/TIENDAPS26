@@ -36,7 +36,8 @@
       }
     </script>
   </head>
-  <body>
+  <body class="storefront" data-theme="dark">
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
     <div class="bg-grid"></div>
     <div class="bg-orb bg-orb-a"></div>
     <div class="bg-orb bg-orb-b"></div>
@@ -46,7 +47,7 @@
         <p>Envíos rápidos y Soporte especializado.</p>
         <p>Todos nuestros productos cuentan con garantía para que compres con total confianza.</p>
         <div class="topbar__actions">
-          <a href="#ofertas">Inicio de la Página</a>
+          <a href="#inicio">Inicio de la Página</a>
           <a href="#categorias">Categorías</a>
           <a href="#contacto">Contacto</a>
           <button class="cart-button cart-button--topbar" id="openCart" type="button">
@@ -69,17 +70,22 @@
           </span>
         </a>
 
-        <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">Menu</button>
+        <button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menú" aria-controls="navLinks" aria-expanded="false">
+          <span aria-hidden="true">☰</span><span>Menú</span>
+        </button>
 
         <div class="nav-links" id="navLinks">
           <a href="#categorias">Categorías</a>
-          <a href="#ofertas">Inicio de Página</a>
+          <a href="#inicio">Inicio de Página</a>
           <a href="#destacados">Filtrar Equipos</a>
           <a href="#marcas">Marcas</a>
           <a href="#contacto">Contacto</a>
           <a href="#inicio" class="nav-links__mobile-action">Ir a inicio</a>
           <a href="#fin" class="nav-links__mobile-action">Ir al final</a>
         </div>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Activar modo claro" aria-pressed="true">
+          <span class="theme-toggle__icon" aria-hidden="true">☀</span><span class="theme-toggle__label">Claro</span>
+        </button>
       </div>
     </nav>
 
@@ -87,14 +93,13 @@
       <section class="hero container">
         <div class="hero__content hero__content--center reveal">
           <img src="LOGOS/pacto3.png" alt="Pacto Store" loading="eager" decoding="async" class="hero__logo" />
-          <p>En Pacto Store reunimos tecnología moderna y confiable para empresas y hogares, 
-            con envíos a todo el país y un servicio de entrega rápido, seguro y pensado para que
-             recibas tus productos con total tranquilidad.</p>
+          <span class="hero__badge">Tecnología confiable · Envíos a todo Paraguay</span>
+          <h1>El equipo ideal para trabajar, crear y disfrutar.</h1>
+          <p class="hero__lead">Notebooks, PCs, smartphones, TVs y accesorios de primeras marcas, con asesoramiento antes y después de tu compra.</p>
 
           <div class="hero__cta">
-            <a class="btn btn--primary btn--cta-whatsapp" href="https://wa.me/595982213504?text=Hola%2C%20estoy%20interesado%20y%20tengo%20algunas%20dudas.%20%C2%BFMe%20pueden%20asesorar%3F" target="_blank" rel="noopener noreferrer" aria-label="Contactar por WhatsApp">
-              <img src="LOGOS/CCC.png" alt="Contactanos por WhatsApp" class="btn--cta-whatsapp__img" loading="eager" decoding="async" />
-            </a>
+            <a class="btn btn--primary hero__primary-action" href="#destacados">Ver productos <span aria-hidden="true">→</span></a>
+            <a class="btn btn--whatsapp" href="https://wa.me/595982213504?text=Hola%2C%20estoy%20interesado%20y%20tengo%20algunas%20dudas.%20%C2%BFMe%20pueden%20asesorar%3F" target="_blank" rel="noopener noreferrer" aria-label="Solicitar asesoramiento por WhatsApp"><span class="whatsapp-dot" aria-hidden="true"></span> Hablar con un asesor</a>
           </div>
 
           <div class="hero__stats">
@@ -116,7 +121,7 @@
         </div>
 
         <div class="hero__visual reveal">
-          <section class="hero-card hero-card--side" id="contacto">
+          <section class="hero-card hero-card--side" id="contacto-empresarial">
             <div class="upload-card__header">
               <span class="eyebrow">Contacto Empresarial</span>
               <h3>Contanos qué necesita tu empresa</h3>
@@ -156,6 +161,25 @@
             </form>
           </section>
         </div>
+      </section>
+
+      <section class="store-categories container reveal" id="categorias" aria-label="Comprar por categoría">
+        <div class="store-categories__heading"><h2>Elegí cómo querés disfrutar la tecnología.</h2><a href="#destacados">Ver todo el catálogo <span aria-hidden="true">→</span></a></div>
+        <div class="store-categories__grid">
+          <a class="store-category" data-store-category="notebook" href="#destacados"><img src="LOGOS/notebook.jpg" alt="Notebook" loading="lazy" /><span>Notebooks</span></a>
+          <a class="store-category" data-store-category="pc" href="#destacados"><img src="LOGOS/pc.jpg" alt="Computadora" loading="lazy" /><span>Computadoras</span></a>
+          <a class="store-category" data-store-category="smartphone" href="#destacados"><img src="LOGOS/SMARTPHONE.jpeg" alt="Smartphone" loading="lazy" /><span>Smartphones</span></a>
+          <a class="store-category" data-store-category="tv" href="#destacados"><img src="LOGOS/TV.jpg" alt="Televisor" loading="lazy" /><span>TV y entretenimiento</span></a>
+          <a class="store-category" data-store-category="gaming" href="#destacados"><img src="LOGOS/GAMIG.jpg" alt="Equipo gamer" loading="lazy" /><span>Gaming</span></a>
+          <a class="store-category" data-store-category="audio" href="#destacados"><img src="LOGOS/AUDIO.jpg" alt="Productos de audio" loading="lazy" /><span>Audio</span></a>
+        </div>
+      </section>
+
+      <section class="trust-bar container reveal" id="contenido" aria-label="Beneficios de comprar en Pacto Store">
+        <article><span aria-hidden="true">✓</span><div><strong>Compra segura</strong><small>Atención directa y transparente</small></div></article>
+        <article><span aria-hidden="true">⚡</span><div><strong>Entrega rápida</strong><small>Envíos a todo el país</small></div></article>
+        <article><span aria-hidden="true">♢</span><div><strong>Garantía real</strong><small>Productos seleccionados</small></div></article>
+        <article><span aria-hidden="true">◎</span><div><strong>Soporte experto</strong><small>Te ayudamos a elegir mejor</small></div></article>
       </section>
 
       <section class="container section" id="ofertas">
@@ -268,6 +292,13 @@
                 <option value="name-desc">Nombre: Z-A</option>
               </select>
             </label>
+            <label class="search-box">
+              <span>Precio máximo (U$)</span>
+              <input id="maxPriceInput" type="number" min="0" step="50" inputmode="numeric" placeholder="Sin límite" />
+            </label>
+            <button class="btn btn--ghost favorites-toggle" id="favoritesToggle" type="button" aria-pressed="false">
+              ♡ Favoritos <strong id="favoritesCount">0</strong>
+            </button>
             <button class="btn btn--ghost catalog-controls__pdf" id="exportProductsPdf" type="button">Generar PDF</button>
           </div>
         </div>
@@ -306,6 +337,8 @@
           </div>
         </div>
 
+        <p class="catalog-results" id="catalogResults" aria-live="polite"></p>
+
         <div class="catalog-batch-controls reveal" id="catalogBatchControls" aria-label="Control de tandas">
           <label class="search-box search-box--select catalog-batch-controls__select">
             <span>Cantidad de productos visualizados</span>
@@ -343,13 +376,26 @@
         </div>
       </section>
 
-      <section class="container stealth-admin-access" aria-label="Acceso administrativo">
-        <a href="admin.html" class="stealth-admin-access__link" rel="nofollow">00</a>
-      </section>
-
       <div id="fin" aria-hidden="true"></div>
 
     </main>
+
+    <footer class="site-footer" id="contacto">
+      <div class="container site-footer__cta">
+        <div><span class="eyebrow">¿Necesitás una recomendación?</span><h2>Hablemos de la tecnología que necesitás.</h2></div>
+        <a class="btn site-footer__whatsapp" href="https://wa.me/595982213504?text=Hola%2C%20quiero%20asesoramiento%20para%20elegir%20un%20equipo." target="_blank" rel="noopener noreferrer"><span aria-hidden="true">◉</span> Escribir por WhatsApp</a>
+      </div>
+      <div class="container site-footer__grid">
+        <div class="site-footer__brand">
+          <img src="LOGOS/pacto3.png" alt="Pacto Store" loading="lazy" />
+          <p>Tecnología para hogares, profesionales y empresas, con atención cercana en todo Paraguay.</p>
+          <span class="site-footer__location">Paraguay · Atención personalizada</span>
+        </div>
+        <div class="site-footer__links"><h3>Explorar</h3><a href="#destacados">Ver productos <span>→</span></a><a href="#categorias">Categorías <span>→</span></a><a href="#marcas">Marcas <span>→</span></a></div>
+        <div class="site-footer__contact"><h3>Contacto</h3><a href="https://wa.me/595982213504" target="_blank" rel="noopener noreferrer"><small>WhatsApp</small>+595 982 213 504</a><a href="mailto:pierscotto3@gmail.com"><small>Correo electrónico</small>pierscotto3@gmail.com</a></div>
+      </div>
+      <div class="container site-footer__bottom"><span>© 2026 Pacto Store. Todos los derechos reservados.</span><span>Compra inteligente. Tecnología que acompaña.</span></div>
+    </footer>
 
     <aside class="cart-drawer" id="cartDrawer" aria-hidden="true">
       <div class="cart-drawer__header">
@@ -374,8 +420,9 @@
     </a>
 
     <div class="overlay" id="overlay"></div>
+    <div class="store-toast" id="storeToast" role="status" aria-live="polite" aria-atomic="true"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="app.js?v=20260524-5" defer></script>
+    <script src="app.js?v=20260712-1" defer></script>
   </body>
 </html>

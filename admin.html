@@ -278,6 +278,21 @@
           </div>
         </div>
 
+        <p class="catalog-results" id="catalogResults" aria-live="polite"></p>
+        <div class="catalog-batch-controls reveal" id="catalogBatchControls" aria-label="Cantidad de productos mostrados">
+          <label class="search-box search-box--select catalog-batch-controls__select">
+            <span>Productos visibles</span>
+            <select id="batchSizeSelect">
+              <option value="20" selected>20 productos</option>
+              <option value="40">40 productos</option>
+              <option value="60">60 productos</option>
+              <option value="120">120 productos</option>
+            </select>
+          </label>
+          <button class="btn btn--ghost catalog-batch-controls__more" id="loadMoreProducts" type="button" aria-label="Ver más productos">
+            <span aria-hidden="true">↓</span><span>Quiero ver más</span>
+          </button>
+        </div>
         <div class="product-grid" id="productGrid"></div>
       </section>
     </main>
@@ -287,6 +302,6 @@
     </a>
 
     <div class="overlay" id="overlay"></div>
-    <script src="app.js?v=20260524-5" defer></script>
+    <script src="app.js?v=20260712-2" defer></script>
   </body>
 </html>

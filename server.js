@@ -1,4 +1,5 @@
 const path = require('path');
+const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -13,6 +14,7 @@ const ADMIN_USERNAME = String(process.env.ADMIN_USERNAME || '').trim();
 const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || '').trim();
 const DATABASE_URL = String(process.env.DATABASE_URL || '').trim();
 const USE_POSTGRES = Boolean(DATABASE_URL);
+const IS_PRODUCTION = process.env.NODE_ENV === 'production' || Boolean(process.env.RENDER);
 
 let mysqlPool = null;
 let pgPool = null;
@@ -42,6 +44,20 @@ function isAdminAuthEnabled() {
   return Boolean(ADMIN_USERNAME && ADMIN_PASSWORD);
 }
 
+function safeEqual(value, expected) {
+  const valueBuffer = Buffer.from(String(value || ''), 'utf8');
+  const expectedBuffer = Buffer.from(String(expected || ''), 'utf8');
+  return valueBuffer.length === expectedBuffer.length
+    && crypto.timingSafeEqual(valueBuffer, expectedBuffer);
+}
+
+function hasValidAdminCredentials(req) {
+  const credentials = parseBasicAuthHeader(req);
+  return Boolean(credentials
+    && safeEqual(credentials.username, ADMIN_USERNAME)
+    && safeEqual(credentials.password, ADMIN_PASSWORD));
+}
+
 function parseBasicAuthHeader(req) {
   const authHeader = req.headers.authorization || '';
   if (!authHeader.startsWith('Basic ')) return null;
@@ -65,16 +81,12 @@ function requireAdminAuth(req, res, next) {
     return next();
   }
 
-  const credentials = parseBasicAuthHeader(req);
-  const isValid = credentials
-    && credentials.username === ADMIN_USERNAME
-    && credentials.password === ADMIN_PASSWORD;
-
-  if (!isValid) {
-    res.setHeader('WWW-Authenticate', 'Basic realm="NovaTech Admin"');
+  if (!hasValidAdminCredentials(req)) {
+    res.setHeader('WWW-Authenticate', 'Basic realm="Pacto Store Admin", charset="UTF-8"');
     return res.status(401).send('Autenticacion requerida.');
   }
 
+  res.setHeader('Cache-Control', 'no-store, private');
   return next();
 }
 
@@ -164,13 +176,8 @@ app.get('/api/products', async (_req, res) => {
 
 app.put('/api/products', async (req, res) => {
   if (isAdminAuthEnabled()) {
-    const credentials = parseBasicAuthHeader(req);
-    const isValid = credentials
-      && credentials.username === ADMIN_USERNAME
-      && credentials.password === ADMIN_PASSWORD;
-
-    if (!isValid) {
-      res.setHeader('WWW-Authenticate', 'Basic realm="NovaTech Admin"');
+    if (!hasValidAdminCredentials(req)) {
+      res.setHeader('WWW-Authenticate', 'Basic realm="Pacto Store Admin", charset="UTF-8"');
       return res.status(401).json({ error: 'Autenticacion requerida para editar productos.' });
     }
   }
@@ -262,6 +269,10 @@ app.get('*', (req, res, next) => {
 });
 
 async function bootstrap() {
+  if (IS_PRODUCTION && !isAdminAuthEnabled()) {
+    throw new Error('Configuracion insegura: define ADMIN_USERNAME y ADMIN_PASSWORD antes de publicar.');
+  }
+
   if (USE_POSTGRES) {
     await pgPool.query('SELECT 1');
   } else {
