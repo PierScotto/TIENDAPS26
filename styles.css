@@ -2423,6 +2423,74 @@ input {
   .product-card__actions { grid-template-columns: 1fr; }
 }
 
+/* Catálogo táctil: evita tarjetas comprimidas en teléfonos verticales. */
+@media (max-width: 640px) and (orientation: portrait) {
+  .storefront .store-categories {
+    padding: 18px 0 44px;
+  }
+
+  .storefront .store-categories__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 12px;
+  }
+
+  .storefront .store-category {
+    min-width: 0;
+    gap: 9px;
+    font-size: 0.9rem;
+    line-height: 1.25;
+  }
+
+  .storefront .store-category img {
+    min-width: 0;
+    padding: 12px;
+  }
+
+  .filters-panel__group {
+    width: 100%;
+    min-width: 0;
+    padding: 14px 10px;
+  }
+
+  .product-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .product-card {
+    width: 100%;
+    min-width: 0;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .product-card__image {
+    aspect-ratio: 4 / 3;
+  }
+
+  .product-card h3 {
+    font-size: 1.08rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .product-card__specs {
+    font-size: 0.84rem;
+  }
+
+  .product-card__specs li {
+    overflow-wrap: anywhere;
+  }
+
+  .product-card__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .product-card__actions button,
+  .product-card__actions a {
+    min-height: 48px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *,*::before,*::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
@@ -2585,3 +2653,134 @@ input {
 .cart-drawer__item h4 { min-width: 0; overflow-wrap: anywhere; word-break: break-word; white-space: normal; line-height: 1.35; }
 .cart-drawer__item p { overflow-wrap: anywhere; }
 @media (max-width: 840px) { .cart-drawer__item { grid-template-columns: 56px minmax(0,1fr); } }
+
+/* Teléfonos compactos (por ejemplo 412 × 916): composición sin compresión. */
+@media (max-width: 480px) and (orientation: portrait) {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  .container {
+    width: calc(100% - 24px);
+  }
+
+  .storefront .navbar__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+    padding: 9px 0;
+  }
+
+  .storefront .brand {
+    min-width: 0;
+  }
+
+  .storefront .brand__text {
+    min-width: 0;
+  }
+
+  .storefront .brand__text strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .storefront .theme-toggle {
+    min-width: 44px;
+    padding: 8px;
+  }
+
+  .storefront .theme-toggle__label {
+    display: none;
+  }
+
+  .storefront .nav-links {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .hero__cta,
+  .storefront .hero__cta {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .hero__cta .btn {
+    width: 100%;
+    min-height: 50px;
+  }
+
+  .storefront .store-categories__grid {
+    gap: 14px 10px;
+  }
+
+  .storefront .store-category {
+    font-size: 0.84rem;
+  }
+
+  .storefront .store-category img {
+    padding: 10px;
+    border-radius: 16px;
+  }
+
+  /* Los filtros deben verse completos: no se ocultan en un carrusel lateral. */
+  #destacados .category-grid,
+  #destacados .brand-grid,
+  #equipos .category-grid,
+  #equipos .brand-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    overflow: visible;
+    padding: 0;
+    gap: 9px;
+  }
+
+  #destacados .category-chip,
+  #destacados .brand-grid .category-chip,
+  #equipos .category-chip,
+  #equipos .brand-grid .category-chip {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    padding: 10px 8px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+
+  #destacados .brand-grid .category-chip,
+  #equipos .brand-grid .category-chip {
+    gap: 8px;
+  }
+
+  #destacados .brand-grid .brand-chip__logo,
+  #equipos .brand-grid .brand-chip__logo {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+  }
+
+  .product-card__meta {
+    gap: 7px;
+  }
+
+  .product-card__meta span {
+    max-width: 100%;
+  }
+
+  .product-card__specs li {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1px;
+  }
+
+  .product-card__specs li span {
+    min-width: 0;
+    padding-top: 0;
+  }
+}
